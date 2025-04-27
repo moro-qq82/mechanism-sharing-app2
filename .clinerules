@@ -1,0 +1,23 @@
+# プロジェクトガイドライン
+
+## Documentation Requirements
+
+-   Update relevant documentation in /docs when modifying features
+-   Keep README.md in sync with new capabilities
+-   Maintain changelog entries in CHANGELOG.md
+- プロジェクトの開発の文脈をcontext.mdに追記していき、適宜要約文を冒頭に記載してください
+
+
+## Testing Standards
+
+-   Unit tests required for business logic
+-   Integration tests for API endpoints
+-   E2E tests for critical user flows
+
+## はじめに確認すること
+- README.md、requirements-doc.md及びdetailed-design-doc.mdを確認し、プロジェクトの現在地を把握してください
+- 開発はissues_notes.mdの番号を指定してひとつづつ行います。テスト要否はなるべく指示しますが、プロジェクトの状況に応じて判断してください
+- docsフォルダ内にプロジェクトの開発の文脈をcontext.mdファイル内に記載するようにしますので、確認し適切にメンテナンスしてください
+- docsフォルダ内にER図やクラス図のファイルを作って保管し、都度メンテナンスしてください
+- 指示者はソフトウェア開発経験が少ないため、履歴を適切に保存(CHANGELOG.md)し、README.mdを詳しめに書いてください
+- 総じて、いつでも経験の浅い新人がプロジェクトに入れるよう文書、コードをメンテナンスしてください
