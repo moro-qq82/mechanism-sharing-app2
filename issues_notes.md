@@ -11,11 +11,11 @@
 09. (backend)メカニズム管理API実装その２：メカニズム詳細取得API（テスト必要）
 10. (backend)メカニズム管理API実装その３：メカニズム投稿API（ファイルアップロード含む）（テスト必要）
 11. (backend)後回しにしたテスト実装の確認(test_auth.pyのendpoint)
-12. (frontend)認証画面機能実装
-13. (frontend)共通コンポーネント実装
-14. (frontend)メカニズム一覧画面機能実装
-15. (frontend)メカニズム詳細画面機能実装
-16. (frontend)メカニズム投稿画面機能実装
+12. (frontend)認証画面機能実装（テスト必要）
+13. (frontend)共通コンポーネント実装（テスト必要）
+14. (frontend)メカニズム一覧画面機能実装（テスト必要）
+15. (frontend)メカニズム詳細画面機能実装（テスト必要）
+16. (frontend)メカニズム投稿画面機能実装（テスト必要）
 17. 新規投稿画面でカテゴリ入力を別の画面からボタンクリックで入力できるようにしたい（テスト必要）
 18. (frontend)APIとの連携実装
 19. 統合テスト
@@ -102,3 +102,23 @@
    - 完了日時: 2025-04-29
    - 該当ファイル:
      - backend/tests/test_auth.py
+12. (frontend)認証画面機能実装（テスト必要）
+   - 完了日時: 2025-04-29
+   - 該当ファイル:
+     - frontend/src/types/auth.ts
+     - frontend/src/services/api.ts
+     - frontend/src/services/authService.ts
+     - frontend/src/contexts/AuthContext.tsx
+     - frontend/src/components/auth/LoginForm.tsx
+     - frontend/src/components/auth/RegisterForm.tsx
+     - frontend/src/components/auth/ProtectedRoute.tsx
+     - frontend/src/components/layout/Navbar.tsx
+     - frontend/src/components/layout/Layout.tsx
+     - frontend/src/pages/LoginPage.tsx
+     - frontend/src/pages/RegisterPage.tsx
+     - frontend/src/App.tsx
+     - frontend/src/__tests__/auth/LoginForm.test.tsx
+     - frontend/src/__tests__/auth/RegisterForm.test.tsx
+     - frontend/src/__tests__/auth/ProtectedRoute.test.tsx
+     - frontend/src/__tests__/auth/AuthContext.test.tsx
+     - frontend/src/__tests__/auth/authService.test.ts
