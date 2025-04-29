@@ -74,3 +74,26 @@
      - backend/app/utils/security.py
      - backend/app/middlewares/auth.py
      - backend/tests/test_auth.py
+8. (backend)メカニズム管理API実装その１：メカニズム一覧取得API（テスト必要）
+   - 完了日時: 2025-04-29
+   - 該当ファイル:
+     - backend/app/services/mechanism.py
+     - backend/app/routers/mechanism.py
+     - backend/app/main.py
+     - backend/tests/test_mechanism.py
+9. (backend)メカニズム管理API実装その２：メカニズム詳細取得API（テスト必要）
+   - 完了日時: 2025-04-29
+   - 該当ファイル:
+     - backend/app/services/mechanism.py
+     - backend/app/routers/mechanism.py
+     - backend/app/main.py
+     - backend/tests/test_mechanism.py
+10. (backend)メカニズム管理API実装その３：メカニズム投稿API（ファイルアップロード含む）（テスト必要）
+    - 完了日時: 2025-04-29
+    - 該当ファイル:
+      - backend/app/services/mechanism.py
+      - backend/app/routers/mechanism.py
+      - backend/app/main.py
+      - backend/tests/test_mechanism.py
+      - uploads/files（ディレクトリ）
+      - uploads/thumbnails（ディレクトリ）
