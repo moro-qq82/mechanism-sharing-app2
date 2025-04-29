@@ -1,10 +1,14 @@
 import pytest
 from sqlalchemy.orm import Session
+from fastapi.testclient import TestClient
 
 from backend.app.models.user import User
 from backend.app.schemas.user import UserCreate
 from backend.app.services.auth import create_user, get_user_by_email, authenticate_user
 from backend.app.utils.security import get_password_hash, verify_password
+from backend.app.main import app
+
+client = TestClient(app)
 
 def test_password_hash():
     """パスワードのハッシュ化と検証をテストする"""
@@ -80,4 +84,95 @@ def test_authenticate_user(db_session: Session):
     non_existent_user = authenticate_user(db_session, "nonexistent@example.com", password)
     assert non_existent_user is None
 
-# エンドポイントのテストは別途実装する
+# エンドポイントのテスト
+def test_register_endpoint():
+    """ユーザー登録エンドポイントのテスト"""
+    # テスト用のユーザーデータ
+    user_data = {
+        "email": "test_register_endpoint@example.com",
+        "password": "testpassword"
+    }
+    
+    # POSTリクエストを送信
+    response = client.post("/api/auth/register", json=user_data)
+    
+    # レスポンスを検証
+    assert response.status_code == 201
+    data = response.json()
+    assert data["email"] == user_data["email"]
+    assert "id" in data
+    assert "created_at" in data
+    assert "password" not in data  # パスワードはレスポンスに含まれないはず
+
+def test_register_endpoint_duplicate_email():
+    """既存のメールアドレスでユーザー登録を試みるテスト"""
+    # テスト用のユーザーデータ
+    user_data = {
+        "email": "test_duplicate@example.com",
+        "password": "testpassword"
+    }
+    
+    # 最初のリクエスト（成功するはず）
+    response = client.post("/api/auth/register", json=user_data)
+    assert response.status_code == 201
+    
+    # 同じメールアドレスで2回目のリクエスト（失敗するはず）
+    response = client.post("/api/auth/register", json=user_data)
+    assert response.status_code == 400
+    data = response.json()
+    assert "detail" in data  # エラーメッセージが含まれているはず
+
+def test_login_endpoint():
+    """ログインエンドポイントのテスト"""
+    # テスト用のユーザーを登録
+    user_data = {
+        "email": "test_login@example.com",
+        "password": "testpassword"
+    }
+    client.post("/api/auth/register", json=user_data)
+    
+    # ログインリクエストを送信
+    response = client.post("/api/auth/login", json=user_data)
+    
+    # レスポンスを検証
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
+    assert "user" in data
+    assert data["user"]["email"] == user_data["email"]
+
+def test_login_endpoint_invalid_credentials():
+    """無効な認証情報でログインを試みるテスト"""
+    # テスト用のユーザーを登録
+    user_data = {
+        "email": "test_invalid_login@example.com",
+        "password": "testpassword"
+    }
+    client.post("/api/auth/register", json=user_data)
+    
+    # 間違ったパスワードでログインリクエストを送信
+    invalid_data = {
+        "email": user_data["email"],
+        "password": "wrongpassword"
+    }
+    response = client.post("/api/auth/login", json=invalid_data)
+    
+    # レスポンスを検証
+    assert response.status_code == 401
+    data = response.json()
+    assert "detail" in data  # エラーメッセージが含まれているはず
+
+def test_login_endpoint_nonexistent_user():
+    """存在しないユーザーでログインを試みるテスト"""
+    # 存在しないユーザーでログインリクエストを送信
+    invalid_data = {
+        "email": "nonexistent@example.com",
+        "password": "testpassword"
+    }
+    response = client.post("/api/auth/login", json=invalid_data)
+    
+    # レスポンスを検証
+    assert response.status_code == 401
+    data = response.json()
+    assert "detail" in data  # エラーメッセージが含まれているはず
