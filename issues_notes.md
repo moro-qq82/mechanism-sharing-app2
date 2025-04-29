@@ -10,14 +10,15 @@
 8. (backend)メカニズム管理API実装その１：メカニズム一覧取得API（テスト必要）
 9. (backend)メカニズム管理API実装その２：メカニズム詳細取得API（テスト必要）
 10. (backend)メカニズム管理API実装その３：メカニズム投稿API（ファイルアップロード含む）（テスト必要）
-11. (frontend)認証画面機能実装
-12. (frontend)共通コンポーネント実装
-13. (frontend)メカニズム一覧画面機能実装
-14. (frontend)メカニズム詳細画面機能実装
-15. (frontend)メカニズム投稿画面機能実装
-16. 新規投稿画面でカテゴリ入力を別の画面からボタンクリックで入力できるようにしたい（テスト必要）
-17. (frontend)APIとの連携実装
-18. 統合テスト
+11. (backend)後回しにしたテスト実装の確認(test_auth.pyのendpoint)
+12. (frontend)認証画面機能実装
+13. (frontend)共通コンポーネント実装
+14. (frontend)メカニズム一覧画面機能実装
+15. (frontend)メカニズム詳細画面機能実装
+16. (frontend)メカニズム投稿画面機能実装
+17. 新規投稿画面でカテゴリ入力を別の画面からボタンクリックで入力できるようにしたい（テスト必要）
+18. (frontend)APIとの連携実装
+19. 統合テスト
 
 ### completed
 1. メカニズム詳細画面で信頼性のレベルが数字表記だが、「妄想モデル」など信頼性定義文章を表示するようにしたい（テスト不要、画面で確認）
@@ -51,3 +52,25 @@
      - backend/app/routers/like.py
      - backend/app/main.py
      - backend/tests/test_like.py
+5. (backend)認証機能実装その１：ユーザー登録API（テスト必要）
+   - 完了日時: 2025-04-29
+   - 該当ファイル:
+     - backend/app/utils/security.py
+     - backend/app/services/auth.py
+     - backend/app/routers/auth.py
+     - backend/app/main.py
+     - backend/tests/test_auth.py
+6. (backend)認証機能実装その２：ログインAPI（テスト必要）
+   - 完了日時: 2025-04-29
+   - 該当ファイル:
+     - backend/app/utils/security.py
+     - backend/app/services/auth.py
+     - backend/app/routers/auth.py
+     - backend/app/main.py
+     - backend/tests/test_auth.py
+7. (backend)認証機能実装その３：JWT認証ミドルウェア（テスト必要）
+   - 完了日時: 2025-04-29
+   - 該当ファイル:
+     - backend/app/utils/security.py
+     - backend/app/middlewares/auth.py
+     - backend/tests/test_auth.py

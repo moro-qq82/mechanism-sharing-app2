@@ -14,6 +14,7 @@
 ## Testing Standards
 
 -   Unit tests required for business logic
+- backendのpythonのテストはpytestを使用しますが、test対象はbackend/tests/test_*.pyであることに注意してください
 -   Integration tests for API endpoints
 -   E2E tests for critical user flows
 
@@ -27,3 +28,7 @@
   - backend_architecture.md: バックエンドのクラス図
 - 指示者はソフトウェア開発経験が少ないため、履歴を適切に保存(CHANGELOG.md)し、README.mdを詳しめに書いてください
 - 総じて、いつでも経験の浅い新人がプロジェクトに入れるよう文書、コードをメンテナンスしてください
+
+
+## 開発途中の懸念点について
+- 後回しにしたテストなどはissues_notes.mdに追記していってください
