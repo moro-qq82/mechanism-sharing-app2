@@ -117,6 +117,21 @@
      - PUT /api/categories/{category_id} - カテゴリー更新
      - DELETE /api/categories/{category_id} - カテゴリー削除
    - カテゴリーサービスのユニットテスト実装
+4. いいね機能API実装（2025-04-29完了）
+   - いいねサービスクラスの実装
+     - いいね取得機能
+     - いいね作成機能
+     - いいね削除機能
+     - メカニズムのいいね数取得機能
+     - ユーザーがいいねしたメカニズム一覧取得機能
+     - 人気のメカニズム取得機能
+   - いいねAPIエンドポイントの実装
+     - POST /api/likes/{mechanism_id} - いいね作成
+     - DELETE /api/likes/{mechanism_id} - いいね削除
+     - GET /api/likes/mechanism/{mechanism_id} - メカニズムのいいね数取得
+     - GET /api/likes/popular - 人気のメカニズム取得
+     - GET /api/likes/user/{user_id}/liked - ユーザーがいいねしたメカニズム一覧取得
+   - いいねサービスのユニットテスト実装
 
 ## 6. 技術スタック
 

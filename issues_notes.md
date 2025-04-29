@@ -44,3 +44,10 @@
      - backend/app/routers/category.py
      - backend/app/main.py
      - backend/tests/test_category.py
+4. (backend)いいね機能API実装（テスト必要）
+   - 完了日時: 2025-04-29
+   - 該当ファイル:
+     - backend/app/services/like.py
+     - backend/app/routers/like.py
+     - backend/app/main.py
+     - backend/tests/test_like.py
