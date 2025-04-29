@@ -122,3 +122,24 @@
      - frontend/src/__tests__/auth/ProtectedRoute.test.tsx
      - frontend/src/__tests__/auth/AuthContext.test.tsx
      - frontend/src/__tests__/auth/authService.test.ts
+13. (frontend)共通コンポーネント実装（テスト必要）
+   - 完了日時: 2025-04-29
+   - 該当ファイル:
+     - frontend/src/components/common/Button.tsx
+     - frontend/src/__tests__/common/Button.test.tsx
+     - frontend/src/components/common/Input.tsx
+     - frontend/src/__tests__/common/Input.test.tsx
+     - frontend/src/components/common/TextArea.tsx
+     - frontend/src/__tests__/common/TextArea.test.tsx
+     - frontend/src/components/common/Select.tsx
+     - frontend/src/__tests__/common/Select.test.tsx
+     - frontend/src/components/common/FileUpload.tsx
+     - frontend/src/__tests__/common/FileUpload.test.tsx
+     - frontend/src/components/common/Pagination.tsx
+     - frontend/src/__tests__/common/Pagination.test.tsx
+     - frontend/src/components/common/Loading.tsx
+     - frontend/src/__tests__/common/Loading.test.tsx
+     - frontend/src/components/common/Header.tsx
+     - frontend/src/__tests__/common/Header.test.tsx
+     - frontend/src/components/common/Footer.tsx
+     - frontend/src/__tests__/common/Footer.test.tsx
