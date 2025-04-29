@@ -2,8 +2,8 @@ from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
-from app.database import Base
-from app.models.mechanism import mechanism_category
+from backend.app.database import Base
+from backend.app.models.mechanism import mechanism_category
 
 class Category(Base):
     __tablename__ = "categories"

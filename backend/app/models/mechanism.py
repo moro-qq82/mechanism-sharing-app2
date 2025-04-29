@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Tabl
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
-from app.database import Base
+from backend.app.database import Base
 
 # メカニズムとカテゴリーの中間テーブル
 mechanism_category = Table(
