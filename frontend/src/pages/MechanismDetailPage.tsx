@@ -1,4 +1,5 @@
 import React from 'react';
+import { getReliabilityLabel, getReliabilityColorClass } from '../utils/reliabilityUtils';
 
 const MechanismDetailPage: React.FC = () => {
   // 仮のメカニズム詳細データ
@@ -46,8 +47,8 @@ const MechanismDetailPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="flex items-center">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 mr-2">
-                    信頼性: {mechanism.reliability}
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getReliabilityColorClass(mechanism.reliability)} mr-2`}>
+                    信頼性: {getReliabilityLabel(mechanism.reliability)}
                   </span>
                   <button className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
                     いいね {mechanism.likesCount}
