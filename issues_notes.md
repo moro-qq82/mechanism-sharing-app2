@@ -1,5 +1,5 @@
 
-### issues
+### issues (終了しても記載は残す)
 1. メカニズム詳細画面で信頼性のレベルが数字表記だが、「妄想モデル」など信頼性定義文章を表示するようにしたい（テスト不要、画面で確認）
 2. (backend)データベース設定の実装（テスト必要）
 3. (backend)カテゴリー管理API実装（テスト必要）
@@ -37,3 +37,10 @@
      - alembic.ini
      - migrations/env.py
      - migrations/versions/ab1384850060_initial_migration.py
+3. (backend)カテゴリー管理API実装（テスト必要）
+   - 完了日時: 2025-04-29
+   - 該当ファイル:
+     - backend/app/services/category.py
+     - backend/app/routers/category.py
+     - backend/app/main.py
+     - backend/tests/test_category.py

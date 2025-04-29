@@ -103,6 +103,20 @@
    - テストデータベース設定を実装
    - データベース設定のテストコードを実装
    - PostgreSQLデータベースの作成とテーブル作成
+3. カテゴリー管理API実装（2025-04-29完了）
+   - カテゴリーサービスクラスの実装
+     - カテゴリー一覧取得機能
+     - カテゴリー詳細取得機能
+     - カテゴリー作成機能
+     - カテゴリー更新機能
+     - カテゴリー削除機能
+   - カテゴリーAPIエンドポイントの実装
+     - GET /api/categories/ - カテゴリー一覧取得
+     - GET /api/categories/{category_id} - カテゴリー詳細取得
+     - POST /api/categories/ - カテゴリー作成
+     - PUT /api/categories/{category_id} - カテゴリー更新
+     - DELETE /api/categories/{category_id} - カテゴリー削除
+   - カテゴリーサービスのユニットテスト実装
 
 ## 6. 技術スタック
 
