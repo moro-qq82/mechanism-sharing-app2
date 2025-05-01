@@ -143,3 +143,10 @@
      - frontend/src/__tests__/common/Header.test.tsx
      - frontend/src/components/common/Footer.tsx
      - frontend/src/__tests__/common/Footer.test.tsx
+14. (frontend)メカニズム一覧画面機能実装（テスト必要）
+   - 完了日時: 2025-05-02
+   - 該当ファイル:
+     - frontend/src/types/mechanism.ts
+     - frontend/src/services/mechanismService.ts
+     - frontend/src/pages/MechanismListPage.tsx
+     - frontend/src/__tests__/pages/MechanismListPage.test.tsx
