@@ -25,6 +25,7 @@ export const Loading: React.FC<LoadingProps> = ({
     <div 
       className={`flex flex-col items-center justify-center ${className}`}
       data-testid="loading-container"
+      role="status"
     >
       <svg
         className={`animate-spin ${sizeClasses[size]} ${color}`}
