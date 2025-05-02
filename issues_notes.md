@@ -16,7 +16,7 @@
 14. (frontend)メカニズム一覧画面機能実装（テスト必要）
 15. (frontend)メカニズム詳細画面機能実装（テスト必要）
 16. (frontend)メカニズム投稿画面機能実装（テスト必要）
-17. (frontend)APIとの連携実装
+17. (frontend)APIとの連携実装（テスト必要）
 18. 統合テスト
 19. 新規投稿画面でカテゴリ入力を別の画面からボタンクリックで入力できるようにしたい（テスト必要）
 
@@ -159,3 +159,8 @@
    - 該当ファイル:
      - frontend/src/pages/MechanismNewPage.tsx
      - frontend/src/__tests__/pages/MechanismNewPage.test.tsx
+17. (frontend)APIとの連携実装（テスト必要）
+   - 完了日時: 2025-05-02
+   - 該当ファイル:
+     - frontend/src/__tests__/services/mechanismService.test.ts
+     - frontend/src/__tests__/services/api.test.ts
