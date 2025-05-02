@@ -26,7 +26,6 @@
    - 該当ファイル: 
      - frontend/src/utils/reliabilityUtils.ts
      - frontend/src/pages/MechanismDetailPage.tsx
-
 02. (backend)データベース設定の実装（テスト必要）
    - 完了日時: 2025-04-29
    - 該当ファイル:
@@ -150,3 +149,8 @@
      - frontend/src/services/mechanismService.ts
      - frontend/src/pages/MechanismListPage.tsx
      - frontend/src/__tests__/pages/MechanismListPage.test.tsx
+15. (frontend)メカニズム詳細画面機能実装（テスト必要）
+   - 完了日時: 2025-05-02
+   - 該当ファイル:
+     - frontend/src/pages/MechanismDetailPage.tsx
+     - frontend/src/__tests__/pages/MechanismDetailPage.test.tsx

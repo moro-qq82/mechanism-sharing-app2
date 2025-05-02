@@ -1,24 +1,113 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { getReliabilityLabel, getReliabilityColorClass } from '../utils/reliabilityUtils';
+import MechanismService from '../services/mechanismService';
+import { MechanismDetail } from '../types/mechanism';
+import Loading from '../components/common/Loading';
+import { useAuth } from '../contexts/AuthContext';
 
 const MechanismDetailPage: React.FC = () => {
-  // 仮のメカニズム詳細データ
-  const mechanism = {
-    id: 1,
-    title: 'サンプルメカニズム',
-    description: 'これはサンプルメカニズムの詳細な説明です。メカニズムの動作原理や特徴について詳しく解説しています。このメカニズムは様々な用途に活用できます。',
-    reliability: 3,
-    filePath: '/files/sample.pdf',
-    thumbnailPath: '/placeholder.jpg',
-    user: {
-      id: 1,
-      email: 'user@example.com'
-    },
-    categories: ['機械', '電子'],
-    likesCount: 5,
-    createdAt: '2025-04-25T14:30:00Z',
-    updatedAt: '2025-04-25T14:30:00Z'
+  // URLからメカニズムIDを取得
+  const { id } = useParams<{ id: string }>();
+  const mechanismId = parseInt(id || '0', 10);
+  
+  // 認証コンテキスト
+  const { isAuthenticated, user } = useAuth();
+  
+  // 状態管理
+  const [mechanism, setMechanism] = useState<MechanismDetail | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [likesCount, setLikesCount] = useState<number>(0);
+
+  // メカニズム詳細を取得する関数
+  const fetchMechanismDetail = async () => {
+    try {
+      setLoading(true);
+      const data = await MechanismService.getMechanismById(mechanismId);
+      setMechanism(data);
+      setLikesCount(data.likes_count);
+      setError(null);
+    } catch (err) {
+      setError('メカニズム詳細の取得に失敗しました。');
+      console.error(`メカニズム詳細の取得エラー:`, err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // いいね処理
+  const handleLike = async () => {
+    if (!isAuthenticated) {
+      // 未認証の場合はログインページへリダイレクト
+      // テスト環境ではwindow.location.hrefの変更がエラーになるため、try-catchで囲む
+      try {
+        window.location.href = '/login';
+      } catch (err) {
+        console.error('リダイレクトエラー:', err);
+      }
+      return;
+    }
+
+    try {
+      if (isLiked) {
+        await MechanismService.unlikeMechanism(mechanismId);
+        setIsLiked(false);
+        setLikesCount(prev => prev - 1);
+      } else {
+        await MechanismService.likeMechanism(mechanismId);
+        setIsLiked(true);
+        setLikesCount(prev => prev + 1);
+      }
+    } catch (err) {
+      console.error('いいね処理エラー:', err);
+    }
+  };
+
+  // コンポーネントマウント時にメカニズム詳細を取得
+  useEffect(() => {
+    if (mechanismId) {
+      fetchMechanismDetail();
+    }
+  }, [mechanismId]);
+
+  // ローディング中の表示
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <Loading text="メカニズム詳細を読み込み中..." />
+      </div>
+    );
+  }
+
+  // エラー時の表示
+  if (error || !mechanism) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow">
+          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center">
+              <h1 className="text-3xl font-bold text-gray-900">エラー</h1>
+              <Link
+                to="/"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                一覧に戻る
+              </Link>
+            </div>
+          </div>
+        </header>
+        <main>
+          <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+              <span className="block sm:inline">{error}</span>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -26,12 +115,12 @@ const MechanismDetailPage: React.FC = () => {
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">{mechanism.title}</h1>
-            <a
-              href="/"
+            <Link
+              to="/"
               className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               一覧に戻る
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -50,8 +139,11 @@ const MechanismDetailPage: React.FC = () => {
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getReliabilityColorClass(mechanism.reliability)} mr-2`}>
                     信頼性: {getReliabilityLabel(mechanism.reliability)}
                   </span>
-                  <button className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
-                    いいね {mechanism.likesCount}
+                  <button 
+                    onClick={handleLike}
+                    className={`inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white ${isLiked ? 'bg-pink-700' : 'bg-pink-600 hover:bg-pink-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500`}
+                  >
+                    いいね {likesCount}
                   </button>
                 </div>
               </div>
@@ -88,7 +180,9 @@ const MechanismDetailPage: React.FC = () => {
                       </div>
                       <div className="mt-4">
                         <a
-                          href={mechanism.filePath}
+                          href={mechanism.file_path}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
                           ファイルを表示
@@ -100,13 +194,13 @@ const MechanismDetailPage: React.FC = () => {
                 <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt className="text-sm font-medium text-gray-500">投稿日時</dt>
                   <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {new Date(mechanism.createdAt).toLocaleString('ja-JP')}
+                    {new Date(mechanism.created_at).toLocaleString('ja-JP')}
                   </dd>
                 </div>
                 <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt className="text-sm font-medium text-gray-500">更新日時</dt>
                   <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {new Date(mechanism.updatedAt).toLocaleString('ja-JP')}
+                    {new Date(mechanism.updated_at).toLocaleString('ja-JP')}
                   </dd>
                 </div>
               </dl>
