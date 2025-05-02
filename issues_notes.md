@@ -16,9 +16,9 @@
 14. (frontend)メカニズム一覧画面機能実装（テスト必要）
 15. (frontend)メカニズム詳細画面機能実装（テスト必要）
 16. (frontend)メカニズム投稿画面機能実装（テスト必要）
-17. 新規投稿画面でカテゴリ入力を別の画面からボタンクリックで入力できるようにしたい（テスト必要）
-18. (frontend)APIとの連携実装
-19. 統合テスト
+17. (frontend)APIとの連携実装
+18. 統合テスト
+19. 新規投稿画面でカテゴリ入力を別の画面からボタンクリックで入力できるようにしたい（テスト必要）
 
 ### completed
 01. メカニズム詳細画面で信頼性のレベルが数字表記だが、「妄想モデル」など信頼性定義文章を表示するようにしたい（テスト不要、画面で確認）
@@ -154,3 +154,8 @@
    - 該当ファイル:
      - frontend/src/pages/MechanismDetailPage.tsx
      - frontend/src/__tests__/pages/MechanismDetailPage.test.tsx
+16. (frontend)メカニズム投稿画面機能実装（テスト必要）
+   - 完了日時: 2025-05-02
+   - 該当ファイル:
+     - frontend/src/pages/MechanismNewPage.tsx
+     - frontend/src/__tests__/pages/MechanismNewPage.test.tsx

@@ -1,18 +1,134 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Input from '../components/common/Input';
+import TextArea from '../components/common/TextArea';
+import Select from '../components/common/Select';
+import FileUpload from '../components/common/FileUpload';
+import Button from '../components/common/Button';
+import { MechanismFormData } from '../types/mechanism';
+import MechanismService from '../services/mechanismService';
 
 const MechanismNewPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  
+  // フォームの状態
+  const [formData, setFormData] = useState<MechanismFormData>({
+    title: '',
+    description: '',
+    reliability: 1,
+    categories: '',
+    file: null,
+    thumbnail: null
+  });
+  
+  // ファイル参照
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  
+  // 入力変更ハンドラー
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'reliability' ? parseInt(value, 10) : value
+    }));
+    
+    // エラーをクリア
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+  
+  // ファイル変更ハンドラー
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files } = e.target;
+    if (files && files.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0]
+      }));
+      
+      // エラーをクリア
+      if (formErrors[name]) {
+        setFormErrors(prev => ({
+          ...prev,
+          [name]: ''
+        }));
+      }
+    }
+  };
+  
+  // フォームのバリデーション
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    
+    if (!formData.title.trim()) {
+      errors.title = 'タイトルは必須です';
+    }
+    
+    if (!formData.description.trim()) {
+      errors.description = '説明は必須です';
+    }
+    
+    if (!formData.file) {
+      errors.file = 'メカニズムファイルは必須です';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+  
+  // フォーム送信ハンドラー
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // バリデーション
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      await MechanismService.createMechanism(formData);
+      // 成功したらホームページにリダイレクト
+      navigate('/');
+    } catch (err) {
+      console.error('メカニズムの投稿に失敗しました', err);
+      setError('メカニズムの投稿に失敗しました。');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // 信頼性レベルのオプション
+  const reliabilityOptions = [
+    { value: '1', label: '1 - 妄想モデル: 理論的な仮説段階' },
+    { value: '2', label: '2 - 実験により一部支持: 一部の実験データで支持' },
+    { value: '3', label: '3 - 社内複数人が支持: 組織内で複数の専門家が支持' },
+    { value: '4', label: '4 - 顧客含めて定番認識化: 業界で広く認知' },
+    { value: '5', label: '5 - 教科書に記載: 学術的に確立' }
+  ];
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">新規メカニズム投稿</h1>
-            <a
-              href="/"
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
             >
               キャンセル
-            </a>
+            </Button>
           </div>
         </div>
       </header>
@@ -20,7 +136,12 @@ const MechanismNewPage: React.FC = () => {
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-              <form className="space-y-8 divide-y divide-gray-200">
+              {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-red-600">{error}</p>
+                </div>
+              )}
+              <form className="space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
                 <div className="space-y-8 divide-y divide-gray-200">
                   <div>
                     <div>
@@ -32,69 +153,56 @@ const MechanismNewPage: React.FC = () => {
 
                     <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                       <div className="sm:col-span-6">
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                          タイトル
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="text"
-                            name="title"
-                            id="title"
-                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                            placeholder="メカニズムのタイトルを入力"
-                          />
-                        </div>
+                        <Input
+                          id="title"
+                          name="title"
+                          label="タイトル"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                          placeholder="メカニズムのタイトルを入力"
+                          fullWidth
+                          error={formErrors.title}
+                        />
                       </div>
 
                       <div className="sm:col-span-6">
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                          説明
-                        </label>
-                        <div className="mt-1">
-                          <textarea
-                            id="description"
-                            name="description"
-                            rows={5}
-                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border border-gray-300 rounded-md"
-                            placeholder="メカニズムの詳細な説明を入力"
-                          />
-                        </div>
-                        <p className="mt-2 text-sm text-gray-500">メカニズムの動作原理や特徴について詳しく説明してください。</p>
+                        <TextArea
+                          id="description"
+                          name="description"
+                          label="説明"
+                          value={formData.description}
+                          onChange={handleInputChange}
+                          rows={5}
+                          placeholder="メカニズムの詳細な説明を入力"
+                          fullWidth
+                          error={formErrors.description}
+                          helperText="メカニズムの動作原理や特徴について詳しく説明してください。"
+                        />
                       </div>
 
                       <div className="sm:col-span-3">
-                        <label htmlFor="reliability" className="block text-sm font-medium text-gray-700">
-                          信頼性レベル
-                        </label>
-                        <div className="mt-1">
-                          <select
-                            id="reliability"
-                            name="reliability"
-                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          >
-                            <option value="1">1 - 妄想モデル: 理論的な仮説段階</option>
-                            <option value="2">2 - 実験により一部支持: 一部の実験データで支持</option>
-                            <option value="3">3 - 社内複数人が支持: 組織内で複数の専門家が支持</option>
-                            <option value="4">4 - 顧客含めて定番認識化: 業界で広く認知</option>
-                            <option value="5">5 - 教科書に記載: 学術的に確立</option>
-                          </select>
-                        </div>
+                        <Select
+                          id="reliability"
+                          name="reliability"
+                          label="信頼性レベル"
+                          value={formData.reliability.toString()}
+                          onChange={handleInputChange}
+                          options={reliabilityOptions}
+                          fullWidth
+                        />
                       </div>
 
                       <div className="sm:col-span-6">
-                        <label htmlFor="categories" className="block text-sm font-medium text-gray-700">
-                          カテゴリー
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="text"
-                            name="categories"
-                            id="categories"
-                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                            placeholder="カテゴリーをカンマ区切りで入力（例: 機械,電子）"
-                          />
-                        </div>
-                        <p className="mt-2 text-sm text-gray-500">複数のカテゴリーはカンマで区切ってください。</p>
+                        <Input
+                          id="categories"
+                          name="categories"
+                          label="カテゴリー"
+                          value={formData.categories}
+                          onChange={handleInputChange}
+                          placeholder="カテゴリーをカンマ区切りで入力（例: 機械,電子）"
+                          fullWidth
+                          helperText="複数のカテゴリーはカンマで区切ってください。"
+                        />
                       </div>
                     </div>
                   </div>
@@ -106,73 +214,32 @@ const MechanismNewPage: React.FC = () => {
                     </div>
                     <div className="mt-6">
                       <div className="sm:col-span-6">
-                        <label htmlFor="file" className="block text-sm font-medium text-gray-700">
-                          メカニズムファイル
-                        </label>
-                        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                          <div className="space-y-1 text-center">
-                            <svg
-                              className="mx-auto h-12 w-12 text-gray-400"
-                              stroke="currentColor"
-                              fill="none"
-                              viewBox="0 0 48 48"
-                              aria-hidden="true"
-                            >
-                              <path
-                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <div className="flex text-sm text-gray-600">
-                              <label
-                                htmlFor="file-upload"
-                                className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
-                              >
-                                <span>ファイルをアップロード</span>
-                                <input id="file-upload" name="file-upload" type="file" className="sr-only" />
-                              </label>
-                              <p className="pl-1">またはドラッグ＆ドロップ</p>
-                            </div>
-                            <p className="text-xs text-gray-500">PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG, GIF</p>
-                          </div>
-                        </div>
+                        <FileUpload
+                          ref={fileInputRef}
+                          id="file"
+                          name="file"
+                          label="メカニズムファイル"
+                          onChange={handleFileChange}
+                          acceptedFileTypes="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/jpeg,image/png,image/gif"
+                          buttonText="ファイルを選択"
+                          error={formErrors.file}
+                          helperText="PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG, GIF"
+                          fullWidth
+                        />
                       </div>
 
                       <div className="sm:col-span-6 mt-6">
-                        <label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700">
-                          サムネイル画像（オプション）
-                        </label>
-                        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                          <div className="space-y-1 text-center">
-                            <svg
-                              className="mx-auto h-12 w-12 text-gray-400"
-                              stroke="currentColor"
-                              fill="none"
-                              viewBox="0 0 48 48"
-                              aria-hidden="true"
-                            >
-                              <path
-                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <div className="flex text-sm text-gray-600">
-                              <label
-                                htmlFor="thumbnail-upload"
-                                className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
-                              >
-                                <span>画像をアップロード</span>
-                                <input id="thumbnail-upload" name="thumbnail-upload" type="file" className="sr-only" />
-                              </label>
-                              <p className="pl-1">またはドラッグ＆ドロップ</p>
-                            </div>
-                            <p className="text-xs text-gray-500">JPG, PNG, GIF</p>
-                          </div>
-                        </div>
+                        <FileUpload
+                          ref={thumbnailInputRef}
+                          id="thumbnail"
+                          name="thumbnail"
+                          label="サムネイル画像（オプション）"
+                          onChange={handleFileChange}
+                          acceptedFileTypes="image/jpeg,image/png,image/gif"
+                          buttonText="画像を選択"
+                          helperText="JPG, PNG, GIF"
+                          fullWidth
+                        />
                       </div>
                     </div>
                   </div>
@@ -180,18 +247,21 @@ const MechanismNewPage: React.FC = () => {
 
                 <div className="pt-5">
                   <div className="flex justify-end">
-                    <a
-                      href="/"
-                      className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => navigate('/')}
+                      className="mr-3"
                     >
                       キャンセル
-                    </a>
-                    <button
+                    </Button>
+                    <Button
                       type="submit"
-                      className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      isLoading={isSubmitting}
+                      disabled={isSubmitting}
                     >
                       投稿する
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </form>
