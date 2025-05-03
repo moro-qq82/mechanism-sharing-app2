@@ -5,6 +5,8 @@ from typing import List
 from backend.app.database import get_db
 from backend.app.schemas.category import CategoryCreate, CategoryResponse
 from backend.app.services.category import CategoryService
+from backend.app.middlewares.auth import get_current_user
+from backend.app.models.user import User
 
 router = APIRouter()
 
@@ -27,7 +29,11 @@ def get_category(category_id: int, db: Session = Depends(get_db)):
     return db_category
 
 @router.post("/", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED)
-def create_category(category: CategoryCreate, db: Session = Depends(get_db)):
+def create_category(
+    category: CategoryCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     新しいカテゴリーを作成するエンドポイント
     """
@@ -40,7 +46,12 @@ def create_category(category: CategoryCreate, db: Session = Depends(get_db)):
     return CategoryService.create_category(db=db, category=category)
 
 @router.put("/{category_id}", response_model=CategoryResponse)
-def update_category(category_id: int, category: CategoryCreate, db: Session = Depends(get_db)):
+def update_category(
+    category_id: int, 
+    category: CategoryCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     指定されたIDのカテゴリーを更新するエンドポイント
     """
@@ -57,12 +68,16 @@ def update_category(category_id: int, category: CategoryCreate, db: Session = De
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="カテゴリーが見つかりません")
     return db_category
 
-@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_category(category_id: int, db: Session = Depends(get_db)):
+@router.delete("/{category_id}")
+def delete_category(
+    category_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     指定されたIDのカテゴリーを削除するエンドポイント
     """
     success = CategoryService.delete_category(db, category_id=category_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="カテゴリーが見つかりません")
-    return None
+    return {"message": "カテゴリーが正常に削除されました"}

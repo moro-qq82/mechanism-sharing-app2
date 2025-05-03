@@ -31,10 +31,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     try:
         # トークンをデコード
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        user_id_str = payload.get("sub")
+        if user_id_str is None:
             raise credentials_exception
-        token_data = TokenData(user_id=user_id)
+        try:
+            user_id = int(user_id_str)
+            token_data = TokenData(user_id=user_id)
+        except ValueError:
+            raise credentials_exception
     except JWTError:
         raise credentials_exception
     

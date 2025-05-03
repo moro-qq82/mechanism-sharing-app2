@@ -5,7 +5,7 @@ def test_get_categories(client, test_category):
     """
     カテゴリー一覧取得のテスト
     """
-    response = client.get("/categories")
+    response = client.get("/api/categories")
     assert response.status_code == 200, f"カテゴリー一覧の取得に失敗しました: {response.text}"
     
     data = response.json()
@@ -20,7 +20,7 @@ def test_get_category_by_id(client, test_category):
     """
     カテゴリー詳細取得のテスト
     """
-    response = client.get(f"/categories/{test_category.id}")
+    response = client.get(f"/api/categories/{test_category.id}")
     assert response.status_code == 200, f"カテゴリー詳細の取得に失敗しました: {response.text}"
     
     data = response.json()
@@ -31,7 +31,7 @@ def test_get_nonexistent_category(client):
     """
     存在しないカテゴリーの取得テスト
     """
-    response = client.get("/categories/999")
+    response = client.get("/api/categories/999")
     assert response.status_code == 404, f"存在しないカテゴリーが取得できてしまいました: {response.text}"
 
 def test_create_category(client, auth_headers):
@@ -43,7 +43,7 @@ def test_create_category(client, auth_headers):
     }
     
     response = client.post(
-        "/categories",
+        "/api/categories",
         json=category_data,
         headers=auth_headers
     )
@@ -56,7 +56,7 @@ def test_create_category(client, auth_headers):
     
     # 作成したカテゴリーが取得できることを確認
     category_id = data["id"]
-    response = client.get(f"/categories/{category_id}")
+    response = client.get(f"/api/categories/{category_id}")
     assert response.status_code == 200
 
 def test_create_category_without_auth(client):
@@ -68,7 +68,7 @@ def test_create_category_without_auth(client):
     }
     
     response = client.post(
-        "/categories",
+        "/api/categories",
         json=category_data
     )
     
@@ -83,7 +83,7 @@ def test_create_duplicate_category(client, test_category, auth_headers):
     }
     
     response = client.post(
-        "/categories",
+        "/api/categories",
         json=category_data,
         headers=auth_headers
     )
@@ -99,7 +99,7 @@ def test_update_category(client, test_category, auth_headers):
     }
     
     response = client.put(
-        f"/categories/{test_category.id}",
+        f"/api/categories/{test_category.id}",
         json=update_data,
         headers=auth_headers
     )
@@ -111,7 +111,7 @@ def test_update_category(client, test_category, auth_headers):
     assert data["name"] == update_data["name"]
     
     # 更新されたカテゴリーが取得できることを確認
-    response = client.get(f"/categories/{test_category.id}")
+    response = client.get(f"/api/categories/{test_category.id}")
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == update_data["name"]
@@ -125,7 +125,7 @@ def test_update_category_without_auth(client, test_category):
     }
     
     response = client.put(
-        f"/categories/{test_category.id}",
+        f"/api/categories/{test_category.id}",
         json=update_data
     )
     
@@ -140,7 +140,7 @@ def test_update_nonexistent_category(client, auth_headers):
     }
     
     response = client.put(
-        "/categories/999",
+        "/api/categories/999",
         json=update_data,
         headers=auth_headers
     )
@@ -157,7 +157,7 @@ def test_delete_category(client, auth_headers):
     }
     
     response = client.post(
-        "/categories",
+        "/api/categories",
         json=category_data,
         headers=auth_headers
     )
@@ -167,21 +167,21 @@ def test_delete_category(client, auth_headers):
     
     # カテゴリーを削除
     response = client.delete(
-        f"/categories/{category_id}",
+        f"/api/categories/{category_id}",
         headers=auth_headers
     )
     
     assert response.status_code == 200, f"カテゴリーの削除に失敗しました: {response.text}"
     
     # 削除されたカテゴリーが取得できないことを確認
-    response = client.get(f"/categories/{category_id}")
+    response = client.get(f"/api/categories/{category_id}")
     assert response.status_code == 404
 
 def test_delete_category_without_auth(client, test_category):
     """
     認証なしでカテゴリー削除ができないことをテスト
     """
-    response = client.delete(f"/categories/{test_category.id}")
+    response = client.delete(f"/api/categories/{test_category.id}")
     assert response.status_code == 401, f"認証なしでカテゴリーが削除できてしまいました: {response.text}"
 
 def test_delete_nonexistent_category(client, auth_headers):
@@ -189,7 +189,7 @@ def test_delete_nonexistent_category(client, auth_headers):
     存在しないカテゴリーの削除テスト
     """
     response = client.delete(
-        "/categories/999",
+        "/api/categories/999",
         headers=auth_headers
     )
     

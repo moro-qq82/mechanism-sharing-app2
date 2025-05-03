@@ -7,7 +7,7 @@ def test_get_mechanisms_list(client, test_mechanism):
     """
     メカニズム一覧取得のテスト
     """
-    response = client.get("/mechanisms")
+    response = client.get("/api/mechanisms")
     assert response.status_code == 200, f"メカニズム一覧の取得に失敗しました: {response.text}"
     
     data = response.json()
@@ -21,7 +21,7 @@ def test_get_mechanisms_list(client, test_mechanism):
     assert any(mechanism["id"] == test_mechanism.id for mechanism in data["items"])
     
     # ページネーションのテスト
-    response = client.get("/mechanisms?page=1&limit=5")
+    response = client.get("/api/mechanisms?page=1&limit=5")
     assert response.status_code == 200
     data = response.json()
     assert data["page"] == 1
@@ -31,7 +31,7 @@ def test_get_mechanism_detail(client, test_mechanism):
     """
     メカニズム詳細取得のテスト
     """
-    response = client.get(f"/mechanisms/{test_mechanism.id}")
+    response = client.get(f"/api/mechanisms/{test_mechanism.id}")
     assert response.status_code == 200, f"メカニズム詳細の取得に失敗しました: {response.text}"
     
     data = response.json()
@@ -51,7 +51,7 @@ def test_get_nonexistent_mechanism(client):
     """
     存在しないメカニズムの取得テスト
     """
-    response = client.get("/mechanisms/999")
+    response = client.get("/api/mechanisms/999")
     assert response.status_code == 404, f"存在しないメカニズムが取得できてしまいました: {response.text}"
 
 def test_create_mechanism(client, auth_headers, test_category):
@@ -79,7 +79,7 @@ def test_create_mechanism(client, auth_headers, test_category):
     }
     
     response = client.post(
-        "/mechanisms",
+        "/api/mechanisms",
         data=form_data,
         files=files,
         headers=auth_headers
@@ -101,7 +101,7 @@ def test_create_mechanism(client, auth_headers, test_category):
     
     # 作成したメカニズムが取得できることを確認
     mechanism_id = data["id"]
-    response = client.get(f"/mechanisms/{mechanism_id}")
+    response = client.get(f"/api/mechanisms/{mechanism_id}")
     assert response.status_code == 200
 
 def test_create_mechanism_without_auth(client, test_category):
@@ -125,7 +125,7 @@ def test_create_mechanism_without_auth(client, test_category):
     }
     
     response = client.post(
-        "/mechanisms",
+        "/api/mechanisms",
         data=form_data,
         files=files
     )
@@ -152,7 +152,7 @@ def test_create_mechanism_with_invalid_data(client, auth_headers):
     }
     
     response = client.post(
-        "/mechanisms",
+        "/api/mechanisms",
         data=form_data,
         files=files,
         headers=auth_headers
@@ -169,7 +169,7 @@ def test_create_mechanism_with_invalid_data(client, auth_headers):
     }
     
     response = client.post(
-        "/mechanisms",
+        "/api/mechanisms",
         data=form_data,
         files=files,
         headers=auth_headers
@@ -183,7 +183,7 @@ def test_like_mechanism_flow(client, test_mechanism, auth_headers):
     """
     # 1. いいねを追加
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id},
         headers=auth_headers
     )
@@ -191,7 +191,7 @@ def test_like_mechanism_flow(client, test_mechanism, auth_headers):
     assert response.status_code == 201, f"いいねの追加に失敗しました: {response.text}"
     
     # 2. メカニズム詳細を取得していいね数を確認
-    response = client.get(f"/mechanisms/{test_mechanism.id}")
+    response = client.get(f"/api/mechanisms/{test_mechanism.id}")
     assert response.status_code == 200
     
     data = response.json()
@@ -199,14 +199,14 @@ def test_like_mechanism_flow(client, test_mechanism, auth_headers):
     
     # 3. いいねを取り消し
     response = client.delete(
-        f"/likes/{test_mechanism.id}",
+        f"/api/likes/{test_mechanism.id}",
         headers=auth_headers
     )
     
     assert response.status_code == 200, f"いいねの取り消しに失敗しました: {response.text}"
     
     # 4. メカニズム詳細を再取得していいね数を確認
-    response = client.get(f"/mechanisms/{test_mechanism.id}")
+    response = client.get(f"/api/mechanisms/{test_mechanism.id}")
     assert response.status_code == 200
     
     data = response.json()
@@ -217,7 +217,7 @@ def test_like_mechanism_without_auth(client, test_mechanism):
     認証なしでいいねができないことをテスト
     """
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id}
     )
     
@@ -228,7 +228,7 @@ def test_like_nonexistent_mechanism(client, auth_headers):
     存在しないメカニズムへのいいねができないことをテスト
     """
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": 999},
         headers=auth_headers
     )

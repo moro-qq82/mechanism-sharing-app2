@@ -164,3 +164,17 @@
    - 該当ファイル:
      - frontend/src/__tests__/services/mechanismService.test.ts
      - frontend/src/__tests__/services/api.test.ts
+18. 統合テスト
+   - 完了日時: 2025-05-03
+   - 該当ファイル:
+     - tests/integration/conftest.py
+     - tests/integration/test_auth_integration.py
+     - tests/integration/test_category_integration.py
+     - tests/integration/test_like_integration.py
+     - tests/integration/test_mechanism_integration.py
+     - tests/integration/test_frontend_backend_integration.py
+     - tests/run_integration_tests.py
+     - docs/docs_test_status.md
+     - backend/app/routers/category.py
+     - backend/app/routers/like.py
+     - backend/app/schemas/like.py

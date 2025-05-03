@@ -12,7 +12,7 @@ def test_register_and_login_flow(client):
         "password": "securepassword123"
     }
     
-    response = client.post("/register", json=register_data)
+    response = client.post("/api/auth/register", json=register_data)
     assert response.status_code == 201, f"登録に失敗しました: {response.text}"
     
     register_response = response.json()
@@ -29,7 +29,7 @@ def test_register_and_login_flow(client):
         "password": register_data["password"]
     }
     
-    response = client.post("/login", json=login_data)
+    response = client.post("/api/auth/login", json=login_data)
     assert response.status_code == 200, f"ログインに失敗しました: {response.text}"
     
     login_response = response.json()
@@ -41,7 +41,7 @@ def test_register_and_login_flow(client):
     token = login_response["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
     
-    response = client.get("/users/me", headers=headers)
+    response = client.get("/api/auth/me", headers=headers)
     assert response.status_code == 200, f"認証に失敗しました: {response.text}"
     
     user_data = response.json()
@@ -57,7 +57,7 @@ def test_login_with_invalid_credentials(client, test_user):
         "password": "wrongpassword"
     }
     
-    response = client.post("/login", json=login_data)
+    response = client.post("/api/auth/login", json=login_data)
     assert response.status_code == 401, f"無効なパスワードでログインできてしまいました: {response.text}"
     
     # 存在しないユーザーでログイン
@@ -66,14 +66,14 @@ def test_login_with_invalid_credentials(client, test_user):
         "password": "password123"
     }
     
-    response = client.post("/login", json=login_data)
+    response = client.post("/api/auth/login", json=login_data)
     assert response.status_code == 401, f"存在しないユーザーでログインできてしまいました: {response.text}"
 
 def test_access_protected_route_without_token(client):
     """
     トークンなしで認証が必要なエンドポイントにアクセスできないことをテストする
     """
-    response = client.get("/users/me")
+    response = client.get("/api/auth/me")
     assert response.status_code == 401, f"認証なしでアクセスできてしまいました: {response.text}"
 
 def test_access_protected_route_with_invalid_token(client):
@@ -81,7 +81,7 @@ def test_access_protected_route_with_invalid_token(client):
     無効なトークンで認証が必要なエンドポイントにアクセスできないことをテストする
     """
     headers = {"Authorization": "Bearer invalid_token"}
-    response = client.get("/users/me", headers=headers)
+    response = client.get("/api/auth/me", headers=headers)
     assert response.status_code == 401, f"無効なトークンでアクセスできてしまいました: {response.text}"
 
 def test_register_with_existing_email(client, test_user):
@@ -93,5 +93,5 @@ def test_register_with_existing_email(client, test_user):
         "password": "newpassword123"
     }
     
-    response = client.post("/register", json=register_data)
+    response = client.post("/api/auth/register", json=register_data)
     assert response.status_code == 400, f"既存のメールアドレスで登録できてしまいました: {response.text}"

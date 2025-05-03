@@ -14,7 +14,7 @@ def test_frontend_backend_auth_flow(client):
         "password": "securepassword123"
     }
     
-    response = client.post("/register", json=register_data)
+    response = client.post("/api/auth/register", json=register_data)
     assert response.status_code == 201
     
     register_response = response.json()
@@ -26,14 +26,14 @@ def test_frontend_backend_auth_flow(client):
     headers = {"Authorization": f"Bearer {token}"}
     
     # 2. 認証が必要なエンドポイントにアクセス
-    response = client.get("/users/me", headers=headers)
+    response = client.get("/api/auth/me", headers=headers)
     assert response.status_code == 200
     
     # 3. ログアウト（トークンを破棄）
     # フロントエンドでのログアウト処理をシミュレート
     
     # 4. 認証なしでアクセスできないことを確認
-    response = client.get("/users/me")
+    response = client.get("/api/auth/me")
     assert response.status_code == 401
 
 def test_frontend_backend_mechanism_flow(client, auth_headers, test_category):
@@ -60,7 +60,7 @@ def test_frontend_backend_mechanism_flow(client, auth_headers, test_category):
     }
     
     response = client.post(
-        "/mechanisms",
+        "/api/mechanisms",
         data=form_data,
         files=files,
         headers=auth_headers
@@ -72,7 +72,7 @@ def test_frontend_backend_mechanism_flow(client, auth_headers, test_category):
     mechanism_id = mechanism_data["id"]
     
     # 2. メカニズム一覧取得
-    response = client.get("/mechanisms")
+    response = client.get("/api/mechanisms")
     assert response.status_code == 200
     
     mechanisms_list = response.json()
@@ -80,7 +80,7 @@ def test_frontend_backend_mechanism_flow(client, auth_headers, test_category):
     assert any(mechanism["id"] == mechanism_id for mechanism in mechanisms_list["items"])
     
     # 3. メカニズム詳細取得
-    response = client.get(f"/mechanisms/{mechanism_id}")
+    response = client.get(f"/api/mechanisms/{mechanism_id}")
     assert response.status_code == 200
     
     mechanism_detail = response.json()
@@ -89,7 +89,7 @@ def test_frontend_backend_mechanism_flow(client, auth_headers, test_category):
     
     # 4. いいねを追加
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": mechanism_id},
         headers=auth_headers
     )
@@ -97,7 +97,7 @@ def test_frontend_backend_mechanism_flow(client, auth_headers, test_category):
     assert response.status_code == 201
     
     # 5. メカニズム詳細を再取得していいね数を確認
-    response = client.get(f"/mechanisms/{mechanism_id}")
+    response = client.get(f"/api/mechanisms/{mechanism_id}")
     assert response.status_code == 200
     
     updated_mechanism = response.json()
@@ -105,14 +105,14 @@ def test_frontend_backend_mechanism_flow(client, auth_headers, test_category):
     
     # 6. いいねを取り消し
     response = client.delete(
-        f"/likes/{mechanism_id}",
+        f"/api/likes/{mechanism_id}",
         headers=auth_headers
     )
     
     assert response.status_code == 200
     
     # 7. メカニズム詳細を再取得していいね数を確認
-    response = client.get(f"/mechanisms/{mechanism_id}")
+    response = client.get(f"/api/mechanisms/{mechanism_id}")
     assert response.status_code == 200
     
     final_mechanism = response.json()
@@ -128,7 +128,7 @@ def test_frontend_backend_category_flow(client, auth_headers):
     }
     
     response = client.post(
-        "/categories",
+        "/api/categories",
         json=category_data,
         headers=auth_headers
     )
@@ -139,14 +139,14 @@ def test_frontend_backend_category_flow(client, auth_headers):
     category_id = category["id"]
     
     # 2. カテゴリー一覧取得
-    response = client.get("/categories")
+    response = client.get("/api/categories")
     assert response.status_code == 200
     
     categories_list = response.json()
     assert any(cat["id"] == category_id for cat in categories_list)
     
     # 3. カテゴリー詳細取得
-    response = client.get(f"/categories/{category_id}")
+    response = client.get(f"/api/categories/{category_id}")
     assert response.status_code == 200
     
     category_detail = response.json()
@@ -159,7 +159,7 @@ def test_frontend_backend_category_flow(client, auth_headers):
     }
     
     response = client.put(
-        f"/categories/{category_id}",
+        f"/api/categories/{category_id}",
         json=update_data,
         headers=auth_headers
     )
@@ -171,14 +171,14 @@ def test_frontend_backend_category_flow(client, auth_headers):
     
     # 5. カテゴリー削除
     response = client.delete(
-        f"/categories/{category_id}",
+        f"/api/categories/{category_id}",
         headers=auth_headers
     )
     
     assert response.status_code == 200
     
     # 6. 削除されたカテゴリーが取得できないことを確認
-    response = client.get(f"/categories/{category_id}")
+    response = client.get(f"/api/categories/{category_id}")
     assert response.status_code == 404
 
 def test_frontend_backend_error_handling(client, auth_headers):
@@ -191,7 +191,7 @@ def test_frontend_backend_error_handling(client, auth_headers):
     
     # 2. 無効なリクエストボディ
     response = client.post(
-        "/categories",
+        "/api/categories",
         json={"invalid_field": "value"},
         headers=auth_headers
     )
@@ -199,15 +199,15 @@ def test_frontend_backend_error_handling(client, auth_headers):
     assert response.status_code == 422
     
     # 3. 無効なメソッド
-    response = client.put("/mechanisms")
+    response = client.put("/api/mechanisms")
     assert response.status_code in [404, 405]
     
     # 4. 無効なクエリパラメータ
-    response = client.get("/mechanisms?page=invalid")
+    response = client.get("/api/mechanisms?page=invalid")
     assert response.status_code == 422
     
     # 5. 無効なパスパラメータ
-    response = client.get("/mechanisms/invalid")
+    response = client.get("/api/mechanisms/invalid")
     assert response.status_code == 422
 
 @patch('backend.app.services.mechanism.MechanismService.save_upload_file')
@@ -243,7 +243,7 @@ def test_frontend_backend_file_upload(mock_save_upload_file, client, auth_header
     
     # メカニズムを作成
     response = client.post(
-        "/mechanisms",
+        "/api/mechanisms",
         data=form_data,
         files=files,
         headers=auth_headers

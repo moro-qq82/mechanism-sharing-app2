@@ -3,3 +3,4 @@ frontend/node_modules
 **.pyc
 backend/app/__pycache__/*
 backend/tests/__pycache__/*
+uploads/
