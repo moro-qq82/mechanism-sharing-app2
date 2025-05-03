@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 
-from app.schemas.user import UserResponse
+from backend.app.schemas.user import UserResponse
 
 # カテゴリー情報表示用スキーマ
 class CategoryResponse(BaseModel):

@@ -8,12 +8,13 @@
 - プロジェクトの開発の文脈をcontext.mdに追記していき、適宜要約文を冒頭に記載してください
 
 ## コマンドガイドライン
-- windows環境で開発しているため、&や&&は使用しないこと。一つ一つ処理するか";"を使用すること
+- windows環境で開発しているため、コマンドは一つ一つ処理するか";"を使用すること
 - pythonのパッケージ管理はuvを使用しているため、uv pip installを使用すること
 
 ## Testing Standards
 
 -   Unit tests required for business logic
+- 可能な限りテストを先に書くこと
 - backendのpythonのテストはpytestを使用しますが、test対象はbackend/tests/test_*.pyであることに注意してください
 -   Integration tests for API endpoints
 -   E2E tests for critical user flows
