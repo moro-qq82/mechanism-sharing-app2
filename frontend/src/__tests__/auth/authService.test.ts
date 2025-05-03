@@ -56,7 +56,7 @@ describe('authService', () => {
       const result = await authService.register(registerData);
       
       // Assert
-      expect(postMock).toHaveBeenCalledWith('/register', {
+      expect(postMock).toHaveBeenCalledWith('/api/auth/register', {
         email: 'test@example.com',
         password: 'password123',
       });
@@ -78,7 +78,7 @@ describe('authService', () => {
       const result = await authService.login(loginData);
       
       // Assert
-      expect(postMock).toHaveBeenCalledWith('/login', loginData);
+      expect(postMock).toHaveBeenCalledWith('/api/auth/login', loginData);
       expect(result).toEqual(mockAuthResponse);
       expect(localStorageMock.setItem).toHaveBeenCalledWith('token', 'test-token');
       expect(localStorageMock.setItem).toHaveBeenCalledWith('user', JSON.stringify(mockAuthResponse.user));

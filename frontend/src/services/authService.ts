@@ -12,7 +12,7 @@ const authService = {
    */
   register: async (userData: RegisterFormData) => {
     const { confirmPassword, ...registerData } = userData;
-    const response = await api.post<AuthResponse>('/register', registerData);
+    const response = await api.post<AuthResponse>('/api/auth/register', registerData);
     return response.data;
   },
 
@@ -22,7 +22,7 @@ const authService = {
    * @returns ログイン結果
    */
   login: async (credentials: LoginFormData) => {
-    const response = await api.post<AuthResponse>('/login', credentials);
+    const response = await api.post<AuthResponse>('/api/auth/login', credentials);
     
     // トークンとユーザー情報をローカルストレージに保存
     if (response.data.access_token) {
