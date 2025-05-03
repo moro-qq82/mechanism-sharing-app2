@@ -14,7 +14,7 @@ export const MechanismService = {
    */
   async getMechanisms(page: number = 1, limit: number = 10): Promise<PaginatedMechanismResponse> {
     try {
-      const response = await api.get(`/mechanisms?page=${page}&limit=${limit}`);
+      const response = await api.get(`/api/mechanisms?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
       console.error('メカニズム一覧の取得に失敗しました', error);
@@ -29,7 +29,7 @@ export const MechanismService = {
    */
   async getMechanismById(id: number): Promise<MechanismDetail> {
     try {
-      const response = await api.get(`/mechanisms/${id}`);
+      const response = await api.get(`/api/mechanisms/${id}`);
       return response.data;
     } catch (error) {
       console.error(`メカニズム(ID: ${id})の取得に失敗しました`, error);
@@ -62,7 +62,7 @@ export const MechanismService = {
       }
       
       // multipart/form-dataでリクエスト
-      const response = await api.post('/mechanisms', formData, {
+      const response = await api.post('/api/mechanisms', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -82,7 +82,7 @@ export const MechanismService = {
    */
   async likeMechanism(mechanismId: number): Promise<{ mechanism_id: number; user_id: number }> {
     try {
-      const response = await api.post(`/likes`, { mechanism_id: mechanismId });
+      const response = await api.post(`/api/likes`, { mechanism_id: mechanismId });
       return response.data;
     } catch (error) {
       console.error(`メカニズム(ID: ${mechanismId})へのいいねに失敗しました`, error);
@@ -96,7 +96,7 @@ export const MechanismService = {
    */
   async unlikeMechanism(mechanismId: number): Promise<void> {
     try {
-      await api.delete(`/likes/${mechanismId}`);
+      await api.delete(`/api/likes/${mechanismId}`);
     } catch (error) {
       console.error(`メカニズム(ID: ${mechanismId})のいいね取り消しに失敗しました`, error);
       throw error;

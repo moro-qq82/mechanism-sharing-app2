@@ -164,6 +164,10 @@
 - なし
 
 ### 修正
+- メカニズムAPIエンドポイントの修正（2025-05-04）
+  - フロントエンドからのリクエストが`/mechanisms`に送信されていたが、バックエンドのエンドポイントは`/api/mechanisms`
+  - `mechanismService.ts`のリクエスト先を`/mechanisms`から`/api/mechanisms`に修正
+  - `mechanismService.ts`のリクエスト先を`/likes`から`/api/likes`に修正
 - 認証APIエンドポイントの修正（2025-05-03）
   - フロントエンドとAPIクライアントのリクエスト先を`/register`から`/api/auth/register`に修正
   - フロントエンドとAPIクライアントのリクエスト先を`/login`から`/api/auth/login`に修正
