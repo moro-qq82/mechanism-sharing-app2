@@ -10,6 +10,7 @@
 ## コマンドガイドライン
 - windows環境で開発しているため、コマンドは一つ一つ処理するか";"を使用すること
 - pythonのパッケージ管理はuvを使用しているため、uv pip installを使用すること
+- npm install は必ずfrontendディレクトリ内で実行すること
 
 ## Testing Standards
 

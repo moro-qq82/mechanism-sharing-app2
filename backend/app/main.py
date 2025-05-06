@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 
 app = FastAPI(
     title="メカニズム共有プラットフォーム",
@@ -15,6 +17,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# uploadsディレクトリが存在しない場合は作成
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("uploads/files", exist_ok=True)
+os.makedirs("uploads/thumbnails", exist_ok=True)
+
+# 静的ファイルの設定
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.get("/")
 async def root():

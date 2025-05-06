@@ -1,6 +1,7 @@
 import pytest
 import io
 import os
+import base64
 from fastapi.testclient import TestClient
 
 def test_get_mechanisms_list(client, test_mechanism):
@@ -234,3 +235,80 @@ def test_like_nonexistent_mechanism(client, auth_headers):
     )
     
     assert response.status_code == 404, f"存在しないメカニズムにいいねができてしまいました: {response.text}"
+
+def test_upload_and_display_png_file(client, auth_headers, test_category):
+    """
+    PNGファイルのアップロードと表示のテスト（issue20）
+    
+    このテストでは以下を確認します：
+    1. PNGファイルをアップロードできること
+    2. アップロードされたファイルが正しく保存されていること
+    3. アップロードされたファイルが正しく取得できること
+    4. ファイルのContent-Typeが正しいこと
+    """
+    # テスト用のPNGファイルを作成（1x1の黒いピクセル）
+    png_content = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    )
+    png_file = io.BytesIO(png_content)
+    
+    # サムネイル用にも同じPNGを使用
+    thumbnail_file = io.BytesIO(png_content)
+    
+    # マルチパートフォームデータを作成
+    form_data = {
+        "title": "PNGテスト用メカニズム",
+        "description": "これはPNGファイルのテスト用メカニズムです。",
+        "reliability": "3",
+        "categories": test_category.name
+    }
+    
+    files = {
+        "file": ("test_image.png", png_file, "image/png"),
+        "thumbnail": ("test_thumbnail.png", thumbnail_file, "image/png")
+    }
+    
+    # メカニズムを作成
+    response = client.post(
+        "/api/mechanisms",
+        data=form_data,
+        files=files,
+        headers=auth_headers
+    )
+    
+    assert response.status_code == 201, f"メカニズムの作成に失敗しました: {response.text}"
+    
+    data = response.json()
+    assert data["title"] == form_data["title"]
+    assert data["file_path"] is not None
+    assert data["file_path"].endswith(".png"), "ファイルパスがPNGで終わっていません"
+    assert data["thumbnail_path"] is not None
+    assert data["thumbnail_path"].endswith(".png"), "サムネイルパスがPNGで終わっていません"
+    
+    # ファイルパスを取得
+    file_path = data["file_path"]
+    
+    # ファイルが取得できることを確認
+    # file_pathからuploads/を削除して正しいパスを構築
+    file_response = client.get(f"/uploads/files/{os.path.basename(file_path)}")
+    assert file_response.status_code == 200, f"ファイルの取得に失敗しました: {file_response.text}"
+    
+    # Content-Typeが正しいことを確認
+    assert file_response.headers["content-type"] == "image/png", f"Content-Typeが正しくありません: {file_response.headers['content-type']}"
+    
+    # ファイルの内容が正しいことを確認
+    assert file_response.content == png_content, "ファイルの内容が元のPNGと一致しません"
+    
+    # サムネイルパスを取得
+    thumbnail_path = data["thumbnail_path"]
+    
+    # サムネイルが取得できることを確認
+    # thumbnail_pathからuploads/を削除して正しいパスを構築
+    thumbnail_response = client.get(f"/uploads/thumbnails/{os.path.basename(thumbnail_path)}")
+    assert thumbnail_response.status_code == 200, f"サムネイルの取得に失敗しました: {thumbnail_response.text}"
+    
+    # Content-Typeが正しいことを確認
+    assert thumbnail_response.headers["content-type"] == "image/png", f"サムネイルのContent-Typeが正しくありません: {thumbnail_response.headers['content-type']}"
+    
+    # サムネイルの内容が正しいことを確認
+    assert thumbnail_response.content == png_content, "サムネイルの内容が元のPNGと一致しません"

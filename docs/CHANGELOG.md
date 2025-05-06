@@ -164,6 +164,31 @@
 - なし
 
 ### 修正
+- 統合テストでのファイルパス処理の修正（2025-05-06）
+  - 問題：PNGファイルのアップロードと表示のテストが失敗する
+  - 原因：テストコードでファイルパスの扱いが不適切で、`client.get(f"/{file_path}")`としていたが、`file_path`には既に`uploads/files/uuid.png`のようなパスが含まれていた
+  - 修正内容：
+    - `tests/integration/test_mechanism_integration.py`の`test_upload_and_display_png_file`テストを修正
+    - ファイルパスを`/uploads/files/{os.path.basename(file_path)}`の形式に変更
+    - サムネイルパスも同様に修正
+  - 結果：PNGファイルのアップロードと表示のテストが正常に実行されるようになった
+
+- ファイルとサムネイル画像のURL構築処理の修正（2025-05-04）
+  - 問題：メカニズム詳細画面から「ファイルを表示」しても画像が表示されない、メカニズム一覧画面でサムネイル画像が表示されない
+  - 原因：フロントエンドでファイルパスをそのまま使用していたため、正しいURLが構築されていなかった
+  - 修正内容：
+    - `frontend/src/utils/fileUtils.ts`を新規作成し、ファイルパスをフルURLに変換する`getFileUrl`関数を実装
+    - `frontend/src/pages/MechanismDetailPage.tsx`を修正し、ファイルパスを`getFileUrl`関数で処理するよう変更
+    - `frontend/src/pages/MechanismListPage.tsx`を修正し、サムネイルパスを`getFileUrl`関数で処理するよう変更
+  - 結果：アップロードされたファイルとサムネイル画像が正しく表示されるようになった
+
+- メカニズム詳細画面のファイル表示機能の修正（2025-05-04）
+  - 問題：メカニズム投稿できるが、詳細画面から「ファイルを表示」しても画像が表示されない
+  - 原因：アップロードされたファイルが静的ファイルとして公開されていなかった
+  - 修正内容：
+    - `backend/app/main.py`に`StaticFiles`ミドルウェアを追加して、`uploads`ディレクトリを静的ファイルとして公開
+    - `frontend/src/pages/MechanismDetailPage.tsx`のファイル表示部分を改善して、画像ファイルの場合はプレビューを表示するよう修正
+  - 結果：アップロードされたpngファイルがメカニズム詳細画面で正しく表示されるようになった
 - メカニズムAPIエンドポイントの修正（2025-05-04）
   - フロントエンドからのリクエストが`/mechanisms`に送信されていたが、バックエンドのエンドポイントは`/api/mechanisms`
   - `mechanismService.ts`のリクエスト先を`/mechanisms`から`/api/mechanisms`に修正

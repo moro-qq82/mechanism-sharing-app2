@@ -5,6 +5,7 @@ import MechanismService from '../services/mechanismService';
 import { MechanismDetail } from '../types/mechanism';
 import Loading from '../components/common/Loading';
 import { useAuth } from '../contexts/AuthContext';
+import { getFileUrl } from '../utils/fileUtils';
 
 const MechanismDetailPage: React.FC = () => {
   // URLからメカニズムIDを取得
@@ -176,11 +177,19 @@ const MechanismDetailPage: React.FC = () => {
                   <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                     <div className="border border-gray-200 rounded-md p-4 bg-white">
                       <div className="h-64 flex items-center justify-center bg-gray-100 rounded">
-                        <p className="text-gray-500">ファイルプレビュー</p>
+                        {mechanism.file_path && mechanism.file_path.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+                          <img 
+                            src={getFileUrl(mechanism.file_path)} 
+                            alt="メカニズムファイル" 
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        ) : (
+                          <p className="text-gray-500">ファイルプレビュー（画像以外のファイル）</p>
+                        )}
                       </div>
                       <div className="mt-4">
                         <a
-                          href={mechanism.file_path}
+                          href={getFileUrl(mechanism.file_path)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
