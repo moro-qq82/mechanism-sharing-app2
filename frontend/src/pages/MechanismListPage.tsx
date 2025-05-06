@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import MechanismService from '../services/mechanismService';
 import { Mechanism, PaginatedMechanismResponse } from '../types/mechanism';
 import { getReliabilityLabel, getReliabilityColorClass } from '../utils/reliabilityUtils';
+import { getFileUrl } from '../utils/fileUtils';
 import Loading from '../components/common/Loading';
 import Pagination from '../components/common/Pagination';
 
@@ -95,7 +96,7 @@ const MechanismListPage: React.FC = () => {
                       <div className="flex-shrink-0 w-full">
                         {mechanism.thumbnail_path ? (
                           <img 
-                            src={mechanism.thumbnail_path} 
+                            src={getFileUrl(mechanism.thumbnail_path)} 
                             alt={mechanism.title} 
                             className="h-48 w-full object-cover rounded-md"
                           />

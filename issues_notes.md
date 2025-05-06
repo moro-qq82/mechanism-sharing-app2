@@ -1,3 +1,8 @@
+## 記載ルール
+- issuesはユーザーが追記修正します。完了してもそのまま残します
+- completedにされたissueはユーザーが確認後完了していなかったらIn processに移動します
+- In processのissueはユーザーが完了を確認したら、Completedに移し、In processの方は削除します
+- clineのタスク管理のためこれらのルールを運用します
 
 ### issues (終了しても記載は残す)
 01. メカニズム詳細画面で信頼性のレベルが数字表記だが、「妄想モデル」など信頼性定義文章を表示するようにしたい（テスト不要、画面で確認）
@@ -18,9 +23,43 @@
 16. (frontend)メカニズム投稿画面機能実装（テスト必要）
 17. (frontend)APIとの連携実装（テスト必要）
 18. 統合テスト
-19. 新規投稿画面でカテゴリ入力を別の画面からボタンクリックで入力できるようにしたい（テスト必要）
+19. ログイン後のトップページに「メカニズム一覧の取得に失敗しました」というエラーメッセージが出る
+20. メカニズム投稿できるが、詳細画面から「ファイルを表示」しても画像が表示されない（アップロードしたのはpngファイル）
+21. サムネイル画像をpngとして登録したが、メカニズム一覧画面で表示されない
+22. メカニズム一覧でタイルをクリックして詳細画面に遷移したい
+23. メカニズム詳細画面でファイルを表示したときに、ブラウザで表示できない拡張子の場合は自動でダウンロードさせたい
+24. 投稿画面で投稿するボタンを押したときにスクロールしないとエラーが見えない。投稿するボタンの下にエラーメッセージを表示したい（必須項目が記入されていません）
+25. メカニズムごとにメカニズム詳細画面を開いた回数を記録できるようにする
+26. メカニズム詳細画面でファイルを表示した回数を記録できるようにする
+
+99. 新規投稿画面でカテゴリ入力を別の画面からボタンクリックで入力できるようにしたい（テスト必要）
+
+
+### In process
+20. メカニズム投稿できるが、詳細画面から「ファイルを表示」しても画像が表示されない（アップロードしたのはpngファイル）
+   - 完了日時: 2025-05-06
+   - 該当ファイル:
+     - backend/app/main.py
+     - frontend/src/pages/MechanismDetailPage.tsx
+     - frontend/src/utils/fileUtils.ts
+     - tests/integration/test_mechanism_integration.py
+   - 統合テストは通るが実際の起動画面では表示されていない
+21. サムネイル画像をpngとして登録したが、メカニズム一覧画面で表示されない
+   - 完了日時: 2025-05-04
+   - 該当ファイル:
+     - frontend/src/utils/fileUtils.ts
+     - frontend/src/pages/MechanismListPage.tsx
+     - frontend/src/pages/MechanismDetailPage.tsx
+
 
 ### completed
+
+
+
+19. ログイン後のトップページに「メカニズム一覧の取得に失敗しました」というエラーメッセージが出る
+   - 完了日時: 2025-05-04
+   - 該当ファイル:
+     - frontend/src/services/mechanismService.ts
 01. メカニズム詳細画面で信頼性のレベルが数字表記だが、「妄想モデル」など信頼性定義文章を表示するようにしたい（テスト不要、画面で確認）
    - 完了日時: 2025-04-29
    - 該当ファイル: 
@@ -164,3 +203,17 @@
    - 該当ファイル:
      - frontend/src/__tests__/services/mechanismService.test.ts
      - frontend/src/__tests__/services/api.test.ts
+18. 統合テスト
+   - 完了日時: 2025-05-03
+   - 該当ファイル:
+     - tests/integration/conftest.py
+     - tests/integration/test_auth_integration.py
+     - tests/integration/test_category_integration.py
+     - tests/integration/test_like_integration.py
+     - tests/integration/test_mechanism_integration.py
+     - tests/integration/test_frontend_backend_integration.py
+     - tests/run_integration_tests.py
+     - docs/docs_test_status.md
+     - backend/app/routers/category.py
+     - backend/app/routers/like.py
+     - backend/app/schemas/like.py

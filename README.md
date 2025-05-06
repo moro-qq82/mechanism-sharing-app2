@@ -70,9 +70,10 @@
    createdb mechanism_db
    ```
 
-5. 開発サーバーを起動
+5. ルートディレクトリで開発サーバーを起動
    ```
-   uvicorn app.main:app --reload
+   cd ..
+   uvicorn backend.app.main:app --reload
    ```
 
 ### フロントエンドのセットアップ

@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from backend.app.database import get_db
-from backend.app.middlewares.auth import get_current_active_user
+from backend.app.middlewares.auth import get_current_user
 from backend.app.models.user import User
 from backend.app.schemas.mechanism import MechanismCreate, MechanismListResponse, MechanismDetailResponse, PaginatedMechanismResponse
 from backend.app.services.mechanism import MechanismService
@@ -117,7 +117,7 @@ async def create_mechanism(
     file: UploadFile = File(...),
     thumbnail: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     新しいメカニズムを投稿するエンドポイント

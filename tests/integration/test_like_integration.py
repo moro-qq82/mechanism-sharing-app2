@@ -7,13 +7,13 @@ def test_like_mechanism(client, test_mechanism, auth_headers):
     """
     # テスト前にいいねを削除（既存のいいねがある場合）
     client.delete(
-        f"/likes/{test_mechanism.id}",
+        f"/api/likes/{test_mechanism.id}",
         headers=auth_headers
     )
     
     # いいねを追加
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id},
         headers=auth_headers
     )
@@ -30,7 +30,7 @@ def test_like_mechanism_twice(client, test_mechanism, auth_headers):
     """
     # 1回目のいいね
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id},
         headers=auth_headers
     )
@@ -40,7 +40,7 @@ def test_like_mechanism_twice(client, test_mechanism, auth_headers):
     
     # 2回目のいいね
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id},
         headers=auth_headers
     )
@@ -53,14 +53,14 @@ def test_unlike_mechanism(client, test_mechanism, auth_headers):
     """
     # 事前にいいねを追加
     client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id},
         headers=auth_headers
     )
     
     # いいねを取り消し
     response = client.delete(
-        f"/likes/{test_mechanism.id}",
+        f"/api/likes/{test_mechanism.id}",
         headers=auth_headers
     )
     
@@ -72,13 +72,13 @@ def test_unlike_not_liked_mechanism(client, test_mechanism, auth_headers):
     """
     # 事前にいいねを削除
     client.delete(
-        f"/likes/{test_mechanism.id}",
+        f"/api/likes/{test_mechanism.id}",
         headers=auth_headers
     )
     
     # いいねを取り消し
     response = client.delete(
-        f"/likes/{test_mechanism.id}",
+        f"/api/likes/{test_mechanism.id}",
         headers=auth_headers
     )
     
@@ -90,13 +90,13 @@ def test_get_mechanism_likes_count(client, test_mechanism, auth_headers):
     """
     # 事前にいいねを追加
     client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id},
         headers=auth_headers
     )
     
     # いいね数を取得
-    response = client.get(f"/likes/mechanism/{test_mechanism.id}")
+    response = client.get(f"/api/likes/mechanism/{test_mechanism.id}")
     assert response.status_code == 200, f"いいね数の取得に失敗しました: {response.text}"
     
     data = response.json()
@@ -109,14 +109,14 @@ def test_get_user_liked_mechanisms(client, test_user, test_mechanism, auth_heade
     """
     # 事前にいいねを追加
     client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id},
         headers=auth_headers
     )
     
     # ユーザーがいいねしたメカニズム一覧を取得
     response = client.get(
-        f"/likes/user/{test_user.id}/liked",
+        f"/api/likes/user/{test_user.id}/liked",
         headers=auth_headers
     )
     
@@ -127,13 +127,13 @@ def test_get_user_liked_mechanisms(client, test_user, test_mechanism, auth_heade
     assert len(data) >= 1
     
     # テスト用メカニズムが含まれていることを確認
-    assert any(mechanism["id"] == test_mechanism.id for mechanism in data)
+    assert any(mechanism["mechanism_id"] == test_mechanism.id for mechanism in data)
 
 def test_get_user_liked_mechanisms_without_auth(client, test_user):
     """
     認証なしでユーザーがいいねしたメカニズム一覧を取得できないことをテスト
     """
-    response = client.get(f"/likes/user/{test_user.id}/liked")
+    response = client.get(f"/api/likes/user/{test_user.id}/liked")
     assert response.status_code == 401, f"認証なしでユーザーがいいねしたメカニズム一覧が取得できてしまいました: {response.text}"
 
 def test_get_popular_mechanisms(client, test_mechanism, auth_headers):
@@ -142,13 +142,13 @@ def test_get_popular_mechanisms(client, test_mechanism, auth_headers):
     """
     # 事前にいいねを追加
     client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id},
         headers=auth_headers
     )
     
     # 人気のメカニズムを取得
-    response = client.get("/likes/popular")
+    response = client.get("/api/likes/popular")
     assert response.status_code == 200, f"人気のメカニズム取得に失敗しました: {response.text}"
     
     data = response.json()
@@ -165,7 +165,7 @@ def test_like_mechanism_flow_with_frontend_api(client, test_mechanism, auth_head
     フロントエンドAPIの形式でいいね機能をテストする
     """
     # 1. メカニズム詳細を取得していいね数を確認
-    response = client.get(f"/mechanisms/{test_mechanism.id}")
+    response = client.get(f"/api/mechanisms/{test_mechanism.id}")
     assert response.status_code == 200
     
     initial_data = response.json()
@@ -173,12 +173,12 @@ def test_like_mechanism_flow_with_frontend_api(client, test_mechanism, auth_head
     
     # 2. いいねを追加（既存のいいねを削除してから）
     client.delete(
-        f"/likes/{test_mechanism.id}",
+        f"/api/likes/{test_mechanism.id}",
         headers=auth_headers
     )
     
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id},
         headers=auth_headers
     )
@@ -186,7 +186,7 @@ def test_like_mechanism_flow_with_frontend_api(client, test_mechanism, auth_head
     assert response.status_code == 201
     
     # 3. メカニズム詳細を再取得していいね数が増えたことを確認
-    response = client.get(f"/mechanisms/{test_mechanism.id}")
+    response = client.get(f"/api/mechanisms/{test_mechanism.id}")
     assert response.status_code == 200
     
     updated_data = response.json()
@@ -194,14 +194,14 @@ def test_like_mechanism_flow_with_frontend_api(client, test_mechanism, auth_head
     
     # 4. いいねを取り消し
     response = client.delete(
-        f"/likes/{test_mechanism.id}",
+        f"/api/likes/{test_mechanism.id}",
         headers=auth_headers
     )
     
     assert response.status_code == 200
     
     # 5. メカニズム詳細を再取得していいね数が減ったことを確認
-    response = client.get(f"/mechanisms/{test_mechanism.id}")
+    response = client.get(f"/api/mechanisms/{test_mechanism.id}")
     assert response.status_code == 200
     
     final_data = response.json()

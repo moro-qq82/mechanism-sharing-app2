@@ -72,7 +72,7 @@ def test_user(db_session):
     # ユーザーを作成
     user = User(
         email="test@example.com",
-        hashed_password=get_password_hash("password123")
+        password_hash=get_password_hash("password123")
     )
     db_session.add(user)
     db_session.commit()
@@ -84,7 +84,7 @@ def test_user(db_session):
 def test_token(test_user):
     """テスト用のJWTトークンを作成するフィクスチャ"""
     # トークンを作成
-    access_token = create_access_token(data={"sub": test_user.email})
+    access_token = create_access_token(data={"sub": str(test_user.id)})
     return access_token
 
 @pytest.fixture(scope="function")

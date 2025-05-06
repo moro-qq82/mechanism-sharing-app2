@@ -1,13 +1,14 @@
 import pytest
 import io
 import os
+import base64
 from fastapi.testclient import TestClient
 
 def test_get_mechanisms_list(client, test_mechanism):
     """
     メカニズム一覧取得のテスト
     """
-    response = client.get("/mechanisms")
+    response = client.get("/api/mechanisms")
     assert response.status_code == 200, f"メカニズム一覧の取得に失敗しました: {response.text}"
     
     data = response.json()
@@ -21,7 +22,7 @@ def test_get_mechanisms_list(client, test_mechanism):
     assert any(mechanism["id"] == test_mechanism.id for mechanism in data["items"])
     
     # ページネーションのテスト
-    response = client.get("/mechanisms?page=1&limit=5")
+    response = client.get("/api/mechanisms?page=1&limit=5")
     assert response.status_code == 200
     data = response.json()
     assert data["page"] == 1
@@ -31,7 +32,7 @@ def test_get_mechanism_detail(client, test_mechanism):
     """
     メカニズム詳細取得のテスト
     """
-    response = client.get(f"/mechanisms/{test_mechanism.id}")
+    response = client.get(f"/api/mechanisms/{test_mechanism.id}")
     assert response.status_code == 200, f"メカニズム詳細の取得に失敗しました: {response.text}"
     
     data = response.json()
@@ -51,7 +52,7 @@ def test_get_nonexistent_mechanism(client):
     """
     存在しないメカニズムの取得テスト
     """
-    response = client.get("/mechanisms/999")
+    response = client.get("/api/mechanisms/999")
     assert response.status_code == 404, f"存在しないメカニズムが取得できてしまいました: {response.text}"
 
 def test_create_mechanism(client, auth_headers, test_category):
@@ -79,7 +80,7 @@ def test_create_mechanism(client, auth_headers, test_category):
     }
     
     response = client.post(
-        "/mechanisms",
+        "/api/mechanisms",
         data=form_data,
         files=files,
         headers=auth_headers
@@ -101,7 +102,7 @@ def test_create_mechanism(client, auth_headers, test_category):
     
     # 作成したメカニズムが取得できることを確認
     mechanism_id = data["id"]
-    response = client.get(f"/mechanisms/{mechanism_id}")
+    response = client.get(f"/api/mechanisms/{mechanism_id}")
     assert response.status_code == 200
 
 def test_create_mechanism_without_auth(client, test_category):
@@ -125,7 +126,7 @@ def test_create_mechanism_without_auth(client, test_category):
     }
     
     response = client.post(
-        "/mechanisms",
+        "/api/mechanisms",
         data=form_data,
         files=files
     )
@@ -152,7 +153,7 @@ def test_create_mechanism_with_invalid_data(client, auth_headers):
     }
     
     response = client.post(
-        "/mechanisms",
+        "/api/mechanisms",
         data=form_data,
         files=files,
         headers=auth_headers
@@ -169,7 +170,7 @@ def test_create_mechanism_with_invalid_data(client, auth_headers):
     }
     
     response = client.post(
-        "/mechanisms",
+        "/api/mechanisms",
         data=form_data,
         files=files,
         headers=auth_headers
@@ -183,7 +184,7 @@ def test_like_mechanism_flow(client, test_mechanism, auth_headers):
     """
     # 1. いいねを追加
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id},
         headers=auth_headers
     )
@@ -191,7 +192,7 @@ def test_like_mechanism_flow(client, test_mechanism, auth_headers):
     assert response.status_code == 201, f"いいねの追加に失敗しました: {response.text}"
     
     # 2. メカニズム詳細を取得していいね数を確認
-    response = client.get(f"/mechanisms/{test_mechanism.id}")
+    response = client.get(f"/api/mechanisms/{test_mechanism.id}")
     assert response.status_code == 200
     
     data = response.json()
@@ -199,14 +200,14 @@ def test_like_mechanism_flow(client, test_mechanism, auth_headers):
     
     # 3. いいねを取り消し
     response = client.delete(
-        f"/likes/{test_mechanism.id}",
+        f"/api/likes/{test_mechanism.id}",
         headers=auth_headers
     )
     
     assert response.status_code == 200, f"いいねの取り消しに失敗しました: {response.text}"
     
     # 4. メカニズム詳細を再取得していいね数を確認
-    response = client.get(f"/mechanisms/{test_mechanism.id}")
+    response = client.get(f"/api/mechanisms/{test_mechanism.id}")
     assert response.status_code == 200
     
     data = response.json()
@@ -217,7 +218,7 @@ def test_like_mechanism_without_auth(client, test_mechanism):
     認証なしでいいねができないことをテスト
     """
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": test_mechanism.id}
     )
     
@@ -228,9 +229,86 @@ def test_like_nonexistent_mechanism(client, auth_headers):
     存在しないメカニズムへのいいねができないことをテスト
     """
     response = client.post(
-        "/likes",
+        "/api/likes",
         json={"mechanism_id": 999},
         headers=auth_headers
     )
     
     assert response.status_code == 404, f"存在しないメカニズムにいいねができてしまいました: {response.text}"
+
+def test_upload_and_display_png_file(client, auth_headers, test_category):
+    """
+    PNGファイルのアップロードと表示のテスト（issue20）
+    
+    このテストでは以下を確認します：
+    1. PNGファイルをアップロードできること
+    2. アップロードされたファイルが正しく保存されていること
+    3. アップロードされたファイルが正しく取得できること
+    4. ファイルのContent-Typeが正しいこと
+    """
+    # テスト用のPNGファイルを作成（1x1の黒いピクセル）
+    png_content = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    )
+    png_file = io.BytesIO(png_content)
+    
+    # サムネイル用にも同じPNGを使用
+    thumbnail_file = io.BytesIO(png_content)
+    
+    # マルチパートフォームデータを作成
+    form_data = {
+        "title": "PNGテスト用メカニズム",
+        "description": "これはPNGファイルのテスト用メカニズムです。",
+        "reliability": "3",
+        "categories": test_category.name
+    }
+    
+    files = {
+        "file": ("test_image.png", png_file, "image/png"),
+        "thumbnail": ("test_thumbnail.png", thumbnail_file, "image/png")
+    }
+    
+    # メカニズムを作成
+    response = client.post(
+        "/api/mechanisms",
+        data=form_data,
+        files=files,
+        headers=auth_headers
+    )
+    
+    assert response.status_code == 201, f"メカニズムの作成に失敗しました: {response.text}"
+    
+    data = response.json()
+    assert data["title"] == form_data["title"]
+    assert data["file_path"] is not None
+    assert data["file_path"].endswith(".png"), "ファイルパスがPNGで終わっていません"
+    assert data["thumbnail_path"] is not None
+    assert data["thumbnail_path"].endswith(".png"), "サムネイルパスがPNGで終わっていません"
+    
+    # ファイルパスを取得
+    file_path = data["file_path"]
+    
+    # ファイルが取得できることを確認
+    # file_pathからuploads/を削除して正しいパスを構築
+    file_response = client.get(f"/uploads/files/{os.path.basename(file_path)}")
+    assert file_response.status_code == 200, f"ファイルの取得に失敗しました: {file_response.text}"
+    
+    # Content-Typeが正しいことを確認
+    assert file_response.headers["content-type"] == "image/png", f"Content-Typeが正しくありません: {file_response.headers['content-type']}"
+    
+    # ファイルの内容が正しいことを確認
+    assert file_response.content == png_content, "ファイルの内容が元のPNGと一致しません"
+    
+    # サムネイルパスを取得
+    thumbnail_path = data["thumbnail_path"]
+    
+    # サムネイルが取得できることを確認
+    # thumbnail_pathからuploads/を削除して正しいパスを構築
+    thumbnail_response = client.get(f"/uploads/thumbnails/{os.path.basename(thumbnail_path)}")
+    assert thumbnail_response.status_code == 200, f"サムネイルの取得に失敗しました: {thumbnail_response.text}"
+    
+    # Content-Typeが正しいことを確認
+    assert thumbnail_response.headers["content-type"] == "image/png", f"サムネイルのContent-Typeが正しくありません: {thumbnail_response.headers['content-type']}"
+    
+    # サムネイルの内容が正しいことを確認
+    assert thumbnail_response.content == png_content, "サムネイルの内容が元のPNGと一致しません"
