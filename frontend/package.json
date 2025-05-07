@@ -14,7 +14,6 @@
     "@types/react-dom": "^19.1.2",
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.0",
-    "frontend_": "file:",
     "postcss": "^8.4.31",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
