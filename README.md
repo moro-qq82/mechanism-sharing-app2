@@ -70,7 +70,25 @@
    createdb mechanism_db
    ```
 
-5. ルートディレクトリで開発サーバーを起動
+5. データベースマイグレーションを実行
+   ```
+   # プロジェクトのルートディレクトリで実行
+   alembic upgrade head
+   ```
+   
+   これにより、必要なテーブル（users, mechanisms, categories, likes, mechanism_categories）が自動的に作成されます。
+   
+   マイグレーションの状態を確認するには：
+   ```
+   alembic current
+   ```
+   
+   マイグレーション履歴を確認するには：
+   ```
+   alembic history
+   ```
+
+6. ルートディレクトリで開発サーバーを起動
    ```
    cd ..
    uvicorn backend.app.main:app --reload
