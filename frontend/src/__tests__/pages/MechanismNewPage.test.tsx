@@ -128,14 +128,16 @@ describe('MechanismNewPage', () => {
     // APIが呼ばれることを確認
     await waitFor(() => {
       expect(MechanismService.createMechanism).toHaveBeenCalledTimes(1);
-      expect(MechanismService.createMechanism).toHaveBeenCalledWith({
-        title: 'テストメカニズム',
-        description: 'これはテスト用のメカニズムです。',
-        reliability: 3,
-        categories: 'テスト,機械',
-        file: mechanismFile,
-        thumbnail: thumbnailFile
-      });
+    });
+    
+    // 正しいパラメータでAPIが呼ばれたことを確認
+    expect(MechanismService.createMechanism).toHaveBeenCalledWith({
+      title: 'テストメカニズム',
+      description: 'これはテスト用のメカニズムです。',
+      reliability: 3,
+      categories: 'テスト,機械',
+      file: mechanismFile,
+      thumbnail: thumbnailFile
     });
     
     // 送信成功後にホームページにリダイレクトされることを確認
@@ -150,12 +152,20 @@ describe('MechanismNewPage', () => {
     // フォーム送信（入力なし）
     fireEvent.click(screen.getByText('投稿する'));
     
-    // バリデーションエラーが表示されることを確認
+    // 必須項目エラーメッセージのヘッダーが表示されるまで待機
     await waitFor(() => {
-      expect(screen.getByText('タイトルは必須です')).toBeInTheDocument();
-      expect(screen.getByText('説明は必須です')).toBeInTheDocument();
-      expect(screen.getByText('メカニズムファイルは必須です')).toBeInTheDocument();
+      expect(screen.getByText('必須項目が記入されていません：')).toBeInTheDocument();
     });
+    
+    // 各フィールドのエラーメッセージが表示されることを確認
+    expect(screen.getByText('タイトルは必須です')).toBeInTheDocument();
+    expect(screen.getByText('説明は必須です')).toBeInTheDocument();
+    expect(screen.getByText('メカニズムファイルは必須です')).toBeInTheDocument();
+    
+    // エラーメッセージが投稿ボタンの下に表示されていることを確認
+    const submitButton = screen.getByText('投稿する');
+    const errorMessage = screen.getByText('必須項目が記入されていません：');
+    expect(submitButton.compareDocumentPosition(errorMessage)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     
     // APIが呼ばれないことを確認
     expect(MechanismService.createMechanism).not.toHaveBeenCalled();
@@ -195,10 +205,15 @@ describe('MechanismNewPage', () => {
     // フォーム送信
     fireEvent.click(screen.getByText('投稿する'));
     
-    // エラーメッセージが表示されることを確認
+    // エラーメッセージが表示されるまで待機
     await waitFor(() => {
       expect(screen.getByText('メカニズムの投稿に失敗しました。')).toBeInTheDocument();
     });
+    
+    // エラーメッセージが投稿ボタンの下に表示されていることを確認
+    const submitButton = screen.getByText('投稿する');
+    const errorMessage = screen.getByText('メカニズムの投稿に失敗しました。');
+    expect(submitButton.compareDocumentPosition(errorMessage)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   test('キャンセルボタンをクリックするとホームページに戻ること', async () => {

@@ -136,11 +136,6 @@ const MechanismNewPage: React.FC = () => {
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-              {error && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-red-600">{error}</p>
-                </div>
-              )}
               <form className="space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
                 <div className="space-y-8 divide-y divide-gray-200">
                   <div>
@@ -246,22 +241,41 @@ const MechanismNewPage: React.FC = () => {
                 </div>
 
                 <div className="pt-5">
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => navigate('/')}
-                      className="mr-3"
-                    >
-                      キャンセル
-                    </Button>
-                    <Button
-                      type="submit"
-                      isLoading={isSubmitting}
-                      disabled={isSubmitting}
-                    >
-                      投稿する
-                    </Button>
+                  <div className="flex flex-col">
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate('/')}
+                        className="mr-3"
+                      >
+                        キャンセル
+                      </Button>
+                      <Button
+                        type="submit"
+                        isLoading={isSubmitting}
+                        disabled={isSubmitting}
+                      >
+                        投稿する
+                      </Button>
+                    </div>
+                    
+                    {/* エラーメッセージを投稿ボタンの下に表示 */}
+                    {(error || Object.keys(formErrors).length > 0) && (
+                      <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                        {error && <p className="text-red-600 mb-2">{error}</p>}
+                        {Object.keys(formErrors).length > 0 && (
+                          <div>
+                            <p className="text-red-600 font-medium">必須項目が記入されていません：</p>
+                            <ul className="list-disc pl-5 mt-1">
+                              {Object.entries(formErrors).map(([field, message]) => (
+                                <li key={field} className="text-red-600">{message}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </form>
