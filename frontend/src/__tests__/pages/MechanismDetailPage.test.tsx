@@ -3,7 +3,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter, Route, Routes } from 'react-router-dom';
 import MechanismDetailPage from '../../pages/MechanismDetailPage';
 import MechanismService from '../../services/mechanismService';
-import { MechanismDetail } from '../../types/mechanism';
+import { MechanismDetail, MechanismViewCount } from '../../types/mechanism';
 import { AuthProvider, useAuth } from '../../contexts/AuthContext';
 
 // MechanismServiceのモック
@@ -64,6 +64,12 @@ describe('MechanismDetailPage', () => {
     // unlikeMechanismのモック実装
     (MechanismService.unlikeMechanism as jest.Mock).mockResolvedValue(undefined);
     
+    // recordMechanismViewのモック実装
+    (MechanismService.recordMechanismView as jest.Mock).mockResolvedValue({ mechanism_id: 1, user_id: 1, view_count: 1 });
+    
+    // getMechanismViewsのモック実装
+    (MechanismService.getMechanismViews as jest.Mock).mockResolvedValue({ mechanism_id: 1, total_views: 10, user_views: 3 });
+    
     // デフォルトの認証状態をモック（未認証）
     (useAuth as jest.Mock).mockReturnValue({
       isAuthenticated: false,
@@ -95,8 +101,8 @@ describe('MechanismDetailPage', () => {
     // データが読み込まれるのを待つ
     await waitFor(() => {
       expect(MechanismService.getMechanismById).toHaveBeenCalledTimes(1);
-      expect(MechanismService.getMechanismById).toHaveBeenCalledWith(1);
     });
+    expect(MechanismService.getMechanismById).toHaveBeenCalledWith(1);
     
     // ローディングが終わるのを待つ
     await waitFor(() => {
@@ -175,8 +181,8 @@ describe('MechanismDetailPage', () => {
     // いいねAPIが呼ばれることを確認
     await waitFor(() => {
       expect(MechanismService.likeMechanism).toHaveBeenCalledTimes(1);
-      expect(MechanismService.likeMechanism).toHaveBeenCalledWith(1);
     });
+    expect(MechanismService.likeMechanism).toHaveBeenCalledWith(1);
   });
 
   test('いいねの取り消しができること', async () => {
@@ -212,8 +218,8 @@ describe('MechanismDetailPage', () => {
     // いいねAPIが呼ばれることを確認
     await waitFor(() => {
       expect(MechanismService.likeMechanism).toHaveBeenCalledTimes(1);
-      expect(MechanismService.likeMechanism).toHaveBeenCalledWith(1);
     });
+    expect(MechanismService.likeMechanism).toHaveBeenCalledWith(1);
   });
 
   test('存在しないメカニズムIDの場合にエラーが表示されること', async () => {
@@ -251,6 +257,66 @@ describe('MechanismDetailPage', () => {
     
     // いいねAPIが呼ばれないことを確認
     expect(MechanismService.likeMechanism).not.toHaveBeenCalled();
+    
+    // スパイをリストア
+    consoleSpy.mockRestore();
+  });
+
+  test('閲覧回数が正しく記録され表示されること', async () => {
+    renderWithRouter();
+    
+    // データが読み込まれるのを待つ
+    await waitFor(() => {
+      expect(MechanismService.getMechanismById).toHaveBeenCalledTimes(1);
+    });
+    
+    // メカニズム詳細取得後に閲覧履歴が記録されることを確認
+    await waitFor(() => {
+      expect(MechanismService.recordMechanismView).toHaveBeenCalledTimes(1);
+    });
+    expect(MechanismService.recordMechanismView).toHaveBeenCalledWith(1);
+    
+    // 閲覧回数が取得されることを確認
+    await waitFor(() => {
+      expect(MechanismService.getMechanismViews).toHaveBeenCalledTimes(1);
+    });
+    expect(MechanismService.getMechanismViews).toHaveBeenCalledWith(1);
+    
+    // 閲覧回数が表示されることを確認
+    await waitFor(() => {
+      expect(screen.getByText('総閲覧回数: 10')).toBeInTheDocument();
+    });
+    expect(screen.getByText('あなたの閲覧回数: 3')).toBeInTheDocument();
+  });
+
+  test('閲覧回数の取得に失敗した場合もエラーが表示されないこと', async () => {
+    // コンソールエラーをスパイ
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    
+    // 閲覧回数取得のモックをエラーに設定
+    (MechanismService.getMechanismViews as jest.Mock).mockRejectedValue(new Error('API error'));
+    
+    renderWithRouter();
+    
+    // データが読み込まれるのを待つ
+    await waitFor(() => {
+      expect(MechanismService.getMechanismById).toHaveBeenCalledTimes(1);
+    });
+    
+    // メカニズム詳細取得後に閲覧履歴の記録が試みられることを確認
+    await waitFor(() => {
+      expect(MechanismService.recordMechanismView).toHaveBeenCalledTimes(1);
+    });
+    
+    // エラーがコンソールに出力されることを確認
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalled();
+    });
+    
+    // メインコンテンツが表示されることを確認（エラーで画面が壊れないこと）
+    await waitFor(() => {
+      expect(screen.getByText('テストメカニズム')).toBeInTheDocument();
+    });
     
     // スパイをリストア
     consoleSpy.mockRestore();

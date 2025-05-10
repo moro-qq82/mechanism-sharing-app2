@@ -3,7 +3,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import MechanismListPage from '../../pages/MechanismListPage';
 import MechanismService from '../../services/mechanismService';
-import { PaginatedMechanismResponse } from '../../types/mechanism';
+import { PaginatedMechanismResponse, MechanismViewsResponse } from '../../types/mechanism';
 
 // MechanismServiceのモック
 jest.mock('../../services/mechanismService');
@@ -24,6 +24,7 @@ const mockMechanisms: PaginatedMechanismResponse = {
       },
       categories: ['テスト', '機械'],
       likes_count: 5,
+      views_count: 10,
       created_at: '2025-04-25T14:30:00Z'
     },
     {
@@ -39,6 +40,7 @@ const mockMechanisms: PaginatedMechanismResponse = {
       },
       categories: ['電子'],
       likes_count: 3,
+      views_count: 5,
       created_at: '2025-04-24T10:15:00Z'
     }
   ],
@@ -64,6 +66,14 @@ describe('MechanismListPage', () => {
     
     // getMechanismsのモック実装
     (MechanismService.getMechanisms as jest.Mock).mockResolvedValue(mockMechanisms);
+    
+    // getMechanismsViewsのモック実装
+    (MechanismService.getMechanismsViews as jest.Mock).mockResolvedValue({
+      items: [
+        { mechanism_id: 1, total_views: 10 },
+        { mechanism_id: 2, total_views: 5 }
+      ]
+    });
   });
 
   test('ローディング状態が表示されること', async () => {
@@ -111,6 +121,10 @@ describe('MechanismListPage', () => {
     // いいね数が表示されることを確認
     expect(screen.getByText('いいね 5件')).toBeInTheDocument();
     expect(screen.getByText('いいね 3件')).toBeInTheDocument();
+    
+    // 閲覧回数が表示されることを確認
+    expect(screen.getByText('閲覧 10回')).toBeInTheDocument();
+    expect(screen.getByText('閲覧 5回')).toBeInTheDocument();
   });
 
   test('ページネーションが機能すること', async () => {
@@ -136,8 +150,8 @@ describe('MechanismListPage', () => {
     // 2ページ目のデータを取得するためのAPIが呼ばれることを確認
     await waitFor(() => {
       expect(MechanismService.getMechanisms).toHaveBeenCalledTimes(2);
-      expect(MechanismService.getMechanisms).toHaveBeenLastCalledWith(2, 9);
     });
+    expect(MechanismService.getMechanisms).toHaveBeenLastCalledWith(2, 9);
   });
 
   test('APIエラー時にエラーメッセージが表示されること', async () => {
@@ -150,6 +164,50 @@ describe('MechanismListPage', () => {
     await waitFor(() => {
       expect(screen.getByText('メカニズム一覧の取得に失敗しました。')).toBeInTheDocument();
     });
+  });
+
+  test('一部のデータ取得に失敗しても一覧が表示されること', async () => {
+    // 最初のリクエストは成功、2回目のリクエスト（ページネーションなど）は失敗するように設定
+    (MechanismService.getMechanisms as jest.Mock)
+      .mockResolvedValueOnce(mockMechanisms)
+      .mockRejectedValueOnce(new Error('API error'));
+    
+    // コンソールエラーをスパイ
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    
+    renderWithRouter(<MechanismListPage />);
+    
+    // データが読み込まれるのを待つ
+    await waitFor(() => {
+      expect(MechanismService.getMechanisms).toHaveBeenCalledTimes(1);
+    });
+    
+    // ローディングが終わるのを待つ
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+    
+    // メカニズムのタイトルが表示されることを確認
+    expect(screen.getByText('テストメカニズム1')).toBeInTheDocument();
+    expect(screen.getByText('テストメカニズム2')).toBeInTheDocument();
+    
+    // ページネーションが表示されることを確認
+    const nextPageButton = screen.getByLabelText('次のページへ');
+    expect(nextPageButton).toBeInTheDocument();
+    
+    // 次のページボタンをクリック
+    fireEvent.click(nextPageButton);
+    
+    // エラーがコンソールに出力されることを確認
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalled();
+    });
+    
+    // エラーメッセージが表示されることを確認
+    expect(screen.getByText('メカニズム一覧の取得に失敗しました。')).toBeInTheDocument();
+    
+    // スパイをリストア
+    consoleSpy.mockRestore();
   });
 
   test('メカニズムがない場合に適切なメッセージが表示されること', async () => {

@@ -13,7 +13,7 @@ const MechanismDetailPage: React.FC = () => {
   const mechanismId = parseInt(id || '0', 10);
   
   // 認証コンテキスト
-  const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user } = useAuth();
   
   // 状態管理
   const [mechanism, setMechanism] = useState<MechanismDetail | null>(null);
@@ -21,6 +21,7 @@ const MechanismDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [likesCount, setLikesCount] = useState<number>(0);
+  const [viewsCount, setViewsCount] = useState<{ total: number; user?: number }>({ total: 0 });
 
   // メカニズム詳細を取得する関数
   const fetchMechanismDetail = async () => {
@@ -30,11 +31,32 @@ const MechanismDetailPage: React.FC = () => {
       setMechanism(data);
       setLikesCount(data.likes_count);
       setError(null);
+      
+      // 詳細取得後に閲覧履歴を記録
+      try {
+        await MechanismService.recordMechanismView(mechanismId);
+        fetchMechanismViews();
+      } catch (err) {
+        console.error(`閲覧履歴の記録エラー:`, err);
+      }
     } catch (err) {
       setError('メカニズム詳細の取得に失敗しました。');
       console.error(`メカニズム詳細の取得エラー:`, err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 閲覧回数を取得する関数
+  const fetchMechanismViews = async () => {
+    try {
+      const viewsData = await MechanismService.getMechanismViews(mechanismId);
+      setViewsCount({
+        total: viewsData.total_views,
+        user: viewsData.user_views
+      });
+    } catch (err) {
+      console.error(`閲覧回数の取得エラー:`, err);
     }
   };
 
@@ -217,6 +239,19 @@ const MechanismDetailPage: React.FC = () => {
                   <dt className="text-sm font-medium text-gray-500">更新日時</dt>
                   <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                     {new Date(mechanism.updated_at).toLocaleString('ja-JP')}
+                  </dd>
+                </div>
+                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">閲覧回数</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <div className="flex flex-col">
+                      <span>総閲覧回数: {viewsCount.total}</span>
+                      {viewsCount.user !== undefined && (
+                        <span className="text-gray-600 text-xs mt-1">
+                          あなたの閲覧回数: {viewsCount.user}
+                        </span>
+                      )}
+                    </div>
                   </dd>
                 </div>
               </dl>

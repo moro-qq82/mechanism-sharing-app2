@@ -9,6 +9,7 @@ from backend.app.middlewares.auth import get_current_user
 from backend.app.models.user import User
 from backend.app.schemas.mechanism import MechanismCreate, MechanismListResponse, MechanismDetailResponse, PaginatedMechanismResponse
 from backend.app.services.mechanism import MechanismService
+from backend.app.services.mechanism_view import MechanismViewService
 
 router = APIRouter()
 
@@ -45,6 +46,9 @@ def get_mechanisms(page: int = 1, limit: int = 10, db: Session = Depends(get_db)
         # いいね数を取得
         likes_count = MechanismService.get_likes_count(db, mechanism.id)
         
+        # 閲覧回数を取得
+        views_count = MechanismViewService.get_mechanism_views_count(db, mechanism.id)
+        
         # メカニズム情報を追加
         items.append({
             "id": mechanism.id,
@@ -55,6 +59,7 @@ def get_mechanisms(page: int = 1, limit: int = 10, db: Session = Depends(get_db)
             "user": mechanism.user,
             "categories": categories,
             "likes_count": likes_count,
+            "views_count": views_count,
             "created_at": mechanism.created_at
         })
     
@@ -93,6 +98,9 @@ def get_mechanism(mechanism_id: int, db: Session = Depends(get_db)):
     # いいね数を取得
     likes_count = MechanismService.get_likes_count(db, mechanism.id)
     
+    # 閲覧回数を取得
+    views_count = MechanismViewService.get_mechanism_views_count(db, mechanism.id)
+    
     # メカニズム詳細情報を返す
     return {
         "id": mechanism.id,
@@ -104,6 +112,7 @@ def get_mechanism(mechanism_id: int, db: Session = Depends(get_db)):
         "user": mechanism.user,
         "categories": categories,
         "likes_count": likes_count,
+        "views_count": views_count,
         "created_at": mechanism.created_at,
         "updated_at": mechanism.updated_at
     }
@@ -179,6 +188,9 @@ async def create_mechanism(
     # いいね数を取得（新規作成なので0）
     likes_count = 0
     
+    # 閲覧回数（新規作成なので0）
+    views_count = 0
+    
     # 作成されたメカニズム情報を返す
     return {
         "id": mechanism.id,
@@ -190,6 +202,7 @@ async def create_mechanism(
         "user": current_user,
         "categories": categories,
         "likes_count": likes_count,
+        "views_count": views_count,
         "created_at": mechanism.created_at,
         "updated_at": mechanism.updated_at
     }

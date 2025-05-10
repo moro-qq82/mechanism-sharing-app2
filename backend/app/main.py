@@ -35,10 +35,11 @@ async def health_check():
     return {"status": "ok"}
 
 # 各ルーターをインポートして追加する
-from backend.app.routers import category, like, auth, mechanism
+from backend.app.routers import category, like, auth, mechanism, mechanism_view
 
 app.include_router(auth.router, prefix="/api/auth", tags=["認証"])
 app.include_router(mechanism.router, prefix="/api/mechanisms", tags=["メカニズム"])
+app.include_router(mechanism_view.router, prefix="/api/mechanisms", tags=["メカニズム閲覧"])
 app.include_router(category.router, prefix="/api/categories", tags=["カテゴリー"])
 app.include_router(like.router, prefix="/api/likes", tags=["いいね"])
 

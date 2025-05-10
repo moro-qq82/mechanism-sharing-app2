@@ -1,6 +1,6 @@
 import MechanismService from '../../services/mechanismService';
 import api from '../../services/api';
-import { MechanismDetail, MechanismFormData, PaginatedMechanismResponse } from '../../types/mechanism';
+import { MechanismDetail, MechanismFormData, PaginatedMechanismResponse, MechanismViewCount, MechanismViewsResponse } from '../../types/mechanism';
 
 // apiをモック化
 jest.mock('../../services/api', () => ({
@@ -67,7 +67,7 @@ describe('MechanismService', () => {
       const result = await MechanismService.getMechanisms();
       
       // Assert
-      expect(api.get).toHaveBeenCalledWith('/mechanisms?page=1&limit=10');
+      expect(api.get).toHaveBeenCalledWith('/api/mechanisms?page=1&limit=10');
       expect(result).toEqual(mockPaginatedResponse);
     });
 
@@ -79,7 +79,7 @@ describe('MechanismService', () => {
       const result = await MechanismService.getMechanisms(2, 20);
       
       // Assert
-      expect(api.get).toHaveBeenCalledWith('/mechanisms?page=2&limit=20');
+      expect(api.get).toHaveBeenCalledWith('/api/mechanisms?page=2&limit=20');
       expect(result).toEqual(mockPaginatedResponse);
     });
 
@@ -90,7 +90,7 @@ describe('MechanismService', () => {
       
       // Act & Assert
       await expect(MechanismService.getMechanisms()).rejects.toThrow(error);
-      expect(api.get).toHaveBeenCalledWith('/mechanisms?page=1&limit=10');
+      expect(api.get).toHaveBeenCalledWith('/api/mechanisms?page=1&limit=10');
     });
   });
 
@@ -103,7 +103,7 @@ describe('MechanismService', () => {
       const result = await MechanismService.getMechanismById(1);
       
       // Assert
-      expect(api.get).toHaveBeenCalledWith('/mechanisms/1');
+      expect(api.get).toHaveBeenCalledWith('/api/mechanisms/1');
       expect(result).toEqual(mockMechanismDetail);
     });
 
@@ -114,7 +114,7 @@ describe('MechanismService', () => {
       
       // Act & Assert
       await expect(MechanismService.getMechanismById(1)).rejects.toThrow(error);
-      expect(api.get).toHaveBeenCalledWith('/mechanisms/1');
+      expect(api.get).toHaveBeenCalledWith('/api/mechanisms/1');
     });
   });
 
@@ -139,7 +139,7 @@ describe('MechanismService', () => {
       const result = await MechanismService.createMechanism(formData);
       
       // Assert
-      expect(api.post).toHaveBeenCalledWith('/mechanisms', expect.any(FormData), {
+      expect(api.post).toHaveBeenCalledWith('/api/mechanisms', expect.any(FormData), {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -167,7 +167,7 @@ describe('MechanismService', () => {
       
       // Act & Assert
       await expect(MechanismService.createMechanism(formData)).rejects.toThrow(error);
-      expect(api.post).toHaveBeenCalledWith('/mechanisms', expect.any(FormData), {
+      expect(api.post).toHaveBeenCalledWith('/api/mechanisms', expect.any(FormData), {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -185,7 +185,7 @@ describe('MechanismService', () => {
       const result = await MechanismService.likeMechanism(1);
       
       // Assert
-      expect(api.post).toHaveBeenCalledWith('/likes', { mechanism_id: 1 });
+      expect(api.post).toHaveBeenCalledWith('/api/likes', { mechanism_id: 1 });
       expect(result).toEqual(mockLikeResponse);
     });
 
@@ -196,7 +196,7 @@ describe('MechanismService', () => {
       
       // Act & Assert
       await expect(MechanismService.likeMechanism(1)).rejects.toThrow(error);
-      expect(api.post).toHaveBeenCalledWith('/likes', { mechanism_id: 1 });
+      expect(api.post).toHaveBeenCalledWith('/api/likes', { mechanism_id: 1 });
     });
   });
 
@@ -209,7 +209,7 @@ describe('MechanismService', () => {
       await MechanismService.unlikeMechanism(1);
       
       // Assert
-      expect(api.delete).toHaveBeenCalledWith('/likes/1');
+      expect(api.delete).toHaveBeenCalledWith('/api/likes/1');
     });
 
     it('エラー時に例外をスローすること', async () => {
@@ -219,7 +219,91 @@ describe('MechanismService', () => {
       
       // Act & Assert
       await expect(MechanismService.unlikeMechanism(1)).rejects.toThrow(error);
-      expect(api.delete).toHaveBeenCalledWith('/likes/1');
+      expect(api.delete).toHaveBeenCalledWith('/api/likes/1');
+    });
+  });
+
+  describe('recordMechanismView', () => {
+    it('正常に閲覧履歴を記録できること', async () => {
+      // Arrange
+      const mockViewResponse = { mechanism_id: 1, user_id: 1, view_count: 1 };
+      (api.post as jest.Mock).mockResolvedValueOnce({ data: mockViewResponse });
+      
+      // Act
+      const result = await MechanismService.recordMechanismView(1);
+      
+      // Assert
+      expect(api.post).toHaveBeenCalledWith('/api/mechanisms/1/view');
+      expect(result).toEqual(mockViewResponse);
+    });
+
+    it('エラー時に例外をスローすること', async () => {
+      // Arrange
+      const error = new Error('API error');
+      (api.post as jest.Mock).mockRejectedValueOnce(error);
+      
+      // Act & Assert
+      await expect(MechanismService.recordMechanismView(1)).rejects.toThrow(error);
+      expect(api.post).toHaveBeenCalledWith('/api/mechanisms/1/view');
+    });
+  });
+
+  describe('getMechanismViews', () => {
+    it('正常に閲覧回数を取得できること', async () => {
+      // Arrange
+      const mockViewCountResponse: MechanismViewCount = {
+        mechanism_id: 1,
+        total_views: 10,
+        user_views: 3
+      };
+      (api.get as jest.Mock).mockResolvedValueOnce({ data: mockViewCountResponse });
+      
+      // Act
+      const result = await MechanismService.getMechanismViews(1);
+      
+      // Assert
+      expect(api.get).toHaveBeenCalledWith('/api/mechanisms/1/views');
+      expect(result).toEqual(mockViewCountResponse);
+    });
+
+    it('エラー時に例外をスローすること', async () => {
+      // Arrange
+      const error = new Error('API error');
+      (api.get as jest.Mock).mockRejectedValueOnce(error);
+      
+      // Act & Assert
+      await expect(MechanismService.getMechanismViews(1)).rejects.toThrow(error);
+      expect(api.get).toHaveBeenCalledWith('/api/mechanisms/1/views');
+    });
+  });
+
+  describe('getMechanismsViews', () => {
+    it('正常に複数メカニズムの閲覧回数を一括取得できること', async () => {
+      // Arrange
+      const mockViewsResponse: MechanismViewsResponse = {
+        items: [
+          { mechanism_id: 1, total_views: 10, user_views: 3 },
+          { mechanism_id: 2, total_views: 5, user_views: 1 }
+        ]
+      };
+      (api.post as jest.Mock).mockResolvedValueOnce({ data: mockViewsResponse });
+      
+      // Act
+      const result = await MechanismService.getMechanismsViews([1, 2]);
+      
+      // Assert
+      expect(api.post).toHaveBeenCalledWith('/api/mechanisms/views/batch', [1, 2]);
+      expect(result).toEqual(mockViewsResponse);
+    });
+
+    it('エラー時に例外をスローすること', async () => {
+      // Arrange
+      const error = new Error('API error');
+      (api.post as jest.Mock).mockRejectedValueOnce(error);
+      
+      // Act & Assert
+      await expect(MechanismService.getMechanismsViews([1, 2])).rejects.toThrow(error);
+      expect(api.post).toHaveBeenCalledWith('/api/mechanisms/views/batch', [1, 2]);
     });
   });
 });

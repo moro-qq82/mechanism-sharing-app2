@@ -29,6 +29,7 @@ class MechanismListResponse(BaseModel):
     user: UserResponse
     categories: List[str]
     likes_count: int
+    views_count: Optional[int] = 0
     created_at: datetime
 
     class Config:
@@ -45,6 +46,7 @@ class MechanismDetailResponse(BaseModel):
     user: UserResponse
     categories: List[str]
     likes_count: int
+    views_count: Optional[int] = 0
     created_at: datetime
     updated_at: datetime
 

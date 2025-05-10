@@ -149,3 +149,103 @@ except ValueError:
 1. 必要に応じて他のテストも実行し、すべてのテストが成功することを確認する
 2. 変更内容をCHANGELOG.mdに記録する（完了）
 3. プロジェクトの次の機能開発に進む
+
+# メカニズム閲覧回数記録機能のテスト状況（2025-05-10）
+
+## 概要
+
+issue25番のメカニズム閲覧回数記録機能のテスト実行と修正作業の記録です。
+
+## 実装したテスト
+
+### サービスレイヤーのテスト（backend/tests/test_mechanism_view.py）
+
+1. `test_create_mechanism_view`: メカニズム閲覧履歴作成のテスト
+   - ユーザーIDありの場合（ログインユーザー）
+   - ユーザーIDなしの場合（匿名ユーザー）
+
+2. `test_get_mechanism_views_count`: メカニズム総閲覧回数取得のテスト
+   - 複数の閲覧履歴がある場合の合計値の検証
+
+3. `test_get_user_mechanism_views_count`: 特定ユーザーのメカニズム閲覧回数取得のテスト
+   - 同じユーザーの複数回閲覧の検証
+   - 匿名ユーザーの閲覧は含まれないことの検証
+
+4. `test_get_mechanism_views_stats`: メカニズム閲覧統計情報取得のテスト
+   - ユーザーIDを指定した場合の統計情報の検証
+   - ユーザーIDを指定しない場合の統計情報の検証
+
+5. `test_get_mechanisms_views_stats`: 複数メカニズムの閲覧統計情報取得のテスト
+   - 複数のメカニズムの閲覧統計情報を一括取得する機能の検証
+
+### APIエンドポイントのテスト（backend/tests/test_mechanism_view_api.py）
+
+1. `test_record_mechanism_view_anonymous`: 匿名ユーザーによるメカニズム閲覧履歴記録のテスト
+2. `test_record_mechanism_view_logged_in`: ログインユーザーによるメカニズム閲覧履歴記録のテスト
+3. `test_record_mechanism_view_not_found`: 存在しないメカニズムの閲覧履歴記録のテスト
+4. `test_get_mechanism_views_anonymous`: 匿名ユーザーによるメカニズム閲覧回数取得のテスト
+5. `test_get_mechanism_views_logged_in`: ログインユーザーによるメカニズム閲覧回数取得のテスト
+6. `test_get_mechanism_views_not_found`: 存在しないメカニズムの閲覧回数取得のテスト
+7. `test_get_mechanisms_views_batch`: 複数メカニズムの閲覧回数一括取得のテスト
+
+### 統合テスト（tests/integration/test_mechanism_view_integration.py）
+
+1. `test_record_mechanism_view_anonymous`: 匿名ユーザーがメカニズム詳細画面を閲覧した際に閲覧履歴が記録されるかテスト
+2. `test_record_mechanism_view_authenticated`: 認証済みユーザーがメカニズム詳細画面を閲覧した際に閲覧履歴が記録されるかテスト
+3. `test_multiple_mechanism_views`: 同じメカニズムを複数回閲覧した際に閲覧回数が正しく増加するかテスト
+4. `test_get_mechanism_views_batch`: 複数メカニズムの閲覧回数を一括取得するテスト
+5. `test_mechanism_detail_includes_views_count`: メカニズム詳細APIレスポンスに閲覧回数が含まれているかテスト
+6. `test_mechanism_list_includes_views_count`: メカニズム一覧APIレスポンスに閲覧回数が含まれているかテスト
+
+## 問題点と修正内容
+
+### 1. 非同期関数のモックに関する問題
+
+**問題点**:
+テストコード内で非同期関数をモックに置き換えようとしていましたが、テストクライアントは非同期関数を実行できないため、422エラー（Unprocessable Entity）が発生していました。
+
+**修正内容**:
+非同期関数を返すモックの代わりに、同期関数を返すモックに変更しました。
+
+例:
+```python
+# 修正前
+async def mock_get_current_user_optional(*args, **kwargs):
+    return test_user
+
+# 修正後
+def mock_get_current_user_optional_sync():
+    return test_user
+```
+
+また、`app.dependency_overrides`を使用して依存関係を上書きするようにしました。
+
+```python
+# 依存関係を上書き
+app.dependency_overrides[get_current_user_optional] = mock_get_current_user_optional_sync
+```
+
+## テスト実行結果
+
+修正後、すべてのテストが成功しました。
+
+### サービスレイヤーとAPIエンドポイントのテスト
+```
+================================================== 7 passed, 12 warnings in 1.31s ===================================================
+```
+
+```
+=================================================== 5 passed, 6 warnings in 1.24s ===================================================
+```
+
+### 統合テスト
+```
+=================================================== 6 passed, 10 warnings in 3.93s ===================================================
+```
+
+すべての統合テストが正常に実行され、メカニズム閲覧回数記録機能が期待通りに動作していることが確認できました。
+
+## 次のステップ
+
+1. 変更内容をCHANGELOG.mdに記録する
+2. 次の機能開発に進む

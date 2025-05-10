@@ -29,3 +29,4 @@ class Mechanism(Base):
     user = relationship("User", back_populates="mechanisms")
     categories = relationship("Category", secondary=mechanism_category, back_populates="mechanisms")
     likes = relationship("Like", back_populates="mechanism")
+    views = relationship("MechanismView", back_populates="mechanism")

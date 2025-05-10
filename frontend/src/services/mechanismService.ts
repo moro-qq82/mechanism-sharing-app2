@@ -1,5 +1,5 @@
 import api from './api';
-import { PaginatedMechanismResponse, MechanismDetail, MechanismFormData } from '../types/mechanism';
+import { PaginatedMechanismResponse, MechanismDetail, MechanismFormData, MechanismViewCount, MechanismViewsResponse } from '../types/mechanism';
 
 /**
  * メカニズムサービス
@@ -99,6 +99,51 @@ export const MechanismService = {
       await api.delete(`/api/likes/${mechanismId}`);
     } catch (error) {
       console.error(`メカニズム(ID: ${mechanismId})のいいね取り消しに失敗しました`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * メカニズム閲覧履歴を記録する
+   * @param mechanismId メカニズムID
+   * @returns 記録された閲覧履歴
+   */
+  async recordMechanismView(mechanismId: number): Promise<any> {
+    try {
+      const response = await api.post(`/api/mechanisms/${mechanismId}/view`);
+      return response.data;
+    } catch (error) {
+      console.error(`メカニズム(ID: ${mechanismId})の閲覧履歴記録に失敗しました`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * メカニズムの閲覧回数を取得する
+   * @param mechanismId メカニズムID
+   * @returns 閲覧回数情報
+   */
+  async getMechanismViews(mechanismId: number): Promise<MechanismViewCount> {
+    try {
+      const response = await api.get(`/api/mechanisms/${mechanismId}/views`);
+      return response.data;
+    } catch (error) {
+      console.error(`メカニズム(ID: ${mechanismId})の閲覧回数取得に失敗しました`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * 複数メカニズムの閲覧回数を一括取得する
+   * @param mechanismIds メカニズムIDのリスト
+   * @returns 閲覧回数情報のリスト
+   */
+  async getMechanismsViews(mechanismIds: number[]): Promise<MechanismViewsResponse> {
+    try {
+      const response = await api.post(`/api/mechanisms/views/batch`, mechanismIds);
+      return response.data;
+    } catch (error) {
+      console.error(`複数メカニズムの閲覧回数取得に失敗しました`, error);
       throw error;
     }
   }

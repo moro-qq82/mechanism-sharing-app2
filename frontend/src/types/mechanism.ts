@@ -12,6 +12,7 @@ export interface Mechanism {
   user: User;
   categories: string[];
   likes_count: number;
+  views_count?: number;  // 閲覧回数（オプション）
   created_at: string;
 }
 
@@ -38,4 +39,16 @@ export interface MechanismFormData {
   categories: string;
   file: File | null;
   thumbnail: File | null;
+}
+
+// メカニズム閲覧回数の型
+export interface MechanismViewCount {
+  mechanism_id: number;
+  total_views: number;
+  user_views?: number;
+}
+
+// 複数メカニズムの閲覧回数レスポンスの型
+export interface MechanismViewsResponse {
+  items: MechanismViewCount[];
 }

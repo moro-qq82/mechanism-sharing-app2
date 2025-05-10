@@ -1,23 +1,60 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+from fastapi.testclient import TestClient
 
 from backend.app.config_test import test_settings
-from backend.app.database import Base
+from backend.app.database import Base, get_db
 from backend.app.database_test import TestBase
 from backend.app.models.user import User
 from backend.app.models.mechanism import Mechanism
 from backend.app.models.category import Category
 from backend.app.models.like import Like
+from backend.app.models.mechanism_view import MechanismView
+from backend.app.main import app
 
-# テスト用データベース接続URLを設定
-SQLALCHEMY_DATABASE_URL = test_settings.DATABASE_URL
-
-# テスト用エンジンを作成
-test_engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# テスト用のインメモリSQLiteデータベースを設定
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+test_engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
 
 # テスト用セッションファクトリを作成
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+# テスト用のデータベース依存関係を上書き
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# アプリケーションの依存関係を上書き
+app.dependency_overrides[get_db] = override_get_db
+
+# テスト用のクライアントを作成
+client = TestClient(app)
+
+# テスト前にテーブルを作成
+@pytest.fixture(scope="module", autouse=True)
+def setup_test_db():
+    # テスト用テーブルを作成
+    # 全てのモデルをインポートして、テーブルが正しく作成されるようにする
+    from backend.app.models.user import User
+    from backend.app.models.mechanism import Mechanism
+    from backend.app.models.category import Category
+    from backend.app.models.like import Like
+    from backend.app.models.mechanism_view import MechanismView
+    
+    # テーブルを作成
+    Base.metadata.create_all(bind=test_engine)
+    yield
+    # テスト後にテーブルを削除
+    Base.metadata.drop_all(bind=test_engine)
 
 @pytest.fixture(scope="function")
 def db_session():
@@ -99,3 +136,17 @@ def test_like(db_session, test_user, test_mechanism):
     db_session.commit()
     db_session.refresh(like)
     return like
+
+@pytest.fixture(scope="function")
+def test_mechanism_view(db_session, test_user, test_mechanism):
+    """
+    テスト用メカニズム閲覧履歴を提供するフィクスチャ
+    """
+    mechanism_view = MechanismView(
+        mechanism_id=test_mechanism.id,
+        user_id=test_user.id
+    )
+    db_session.add(mechanism_view)
+    db_session.commit()
+    db_session.refresh(mechanism_view)
+    return mechanism_view

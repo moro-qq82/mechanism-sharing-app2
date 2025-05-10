@@ -157,10 +157,19 @@ describe('MechanismNewPage', () => {
       expect(screen.getByText('必須項目が記入されていません：')).toBeInTheDocument();
     });
     
-    // 各フィールドのエラーメッセージが表示されることを確認
-    expect(screen.getByText('タイトルは必須です')).toBeInTheDocument();
-    expect(screen.getByText('説明は必須です')).toBeInTheDocument();
-    expect(screen.getByText('メカニズムファイルは必須です')).toBeInTheDocument();
+    // エラーメッセージリストが表示されることを確認
+    const errorList = screen.getByRole('list');
+    expect(errorList).toBeInTheDocument();
+    
+    // リスト内のエラーメッセージが表示されることを確認
+    const errorItems = screen.getAllByRole('listitem');
+    expect(errorItems.length).toBeGreaterThanOrEqual(3); // 少なくとも3つのエラーメッセージ
+    
+    // 各エラーメッセージの内容を確認
+    const errorTexts = errorItems.map(item => item.textContent);
+    expect(errorTexts).toContain('タイトルは必須です');
+    expect(errorTexts).toContain('説明は必須です');
+    expect(errorTexts).toContain('メカニズムファイルは必須です');
     
     // エラーメッセージが投稿ボタンの下に表示されていることを確認
     const submitButton = screen.getByText('投稿する');
