@@ -187,7 +187,7 @@ const MechanismDetailPage: React.FC = () => {
                           <p className="text-gray-500">ファイルプレビュー（画像以外のファイル）</p>
                         )}
                       </div>
-                      <div className="mt-4">
+                      <div className="mt-4 flex space-x-2">
                         <a
                           href={getFileUrl(mechanism.file_path)}
                           target="_blank"
@@ -195,6 +195,13 @@ const MechanismDetailPage: React.FC = () => {
                           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
                           ファイルを表示
+                        </a>
+                        <a
+                          href={getFileUrl(mechanism.file_path)}
+                          download
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        >
+                          ダウンロード
                         </a>
                       </div>
                     </div>

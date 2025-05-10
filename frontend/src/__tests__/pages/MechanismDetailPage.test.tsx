@@ -128,6 +128,9 @@ describe('MechanismDetailPage', () => {
     
     // ファイル表示ボタンが表示されることを確認
     expect(screen.getByText('ファイルを表示')).toBeInTheDocument();
+    
+    // ダウンロードボタンが表示されることを確認
+    expect(screen.getByText('ダウンロード')).toBeInTheDocument();
   });
 
   test('APIエラー時にエラーメッセージが表示されること', async () => {
