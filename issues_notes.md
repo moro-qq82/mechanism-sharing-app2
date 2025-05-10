@@ -36,14 +36,7 @@
 
 
 ### In process
-20. メカニズム投稿できるが、詳細画面から「ファイルを表示」しても画像が表示されない（アップロードしたのはpngファイル）
-   - 完了日時: 2025-05-06
-   - 該当ファイル:
-     - backend/app/main.py
-     - frontend/src/pages/MechanismDetailPage.tsx
-     - frontend/src/utils/fileUtils.ts
-     - tests/integration/test_mechanism_integration.py
-   - 統合テストは通るが実際の起動画面では表示されていない
+
 21. サムネイル画像をpngとして登録したが、メカニズム一覧画面で表示されない
    - 完了日時: 2025-05-04
    - 該当ファイル:
@@ -53,9 +46,14 @@
 
 
 ### completed
-
-
-
+20. メカニズム投稿できるが、詳細画面から「ファイルを表示」しても画像が表示されない（アップロードしたのはpngファイル）
+   - 完了日時: 2025-05-10
+   - 該当ファイル:
+     - backend/app/main.py
+     - frontend/src/pages/MechanismDetailPage.tsx
+     - frontend/src/utils/fileUtils.ts
+     - tests/integration/test_mechanism_integration.py
+   - clineのfileUtils.tsの修正が変だったので主導で修正した
 19. ログイン後のトップページに「メカニズム一覧の取得に失敗しました」というエラーメッセージが出る
    - 完了日時: 2025-05-04
    - 該当ファイル:
