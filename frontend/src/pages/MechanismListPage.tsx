@@ -87,9 +87,10 @@ const MechanismListPage: React.FC = () => {
           {mechanisms.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {mechanisms.map((mechanism) => (
-                <div
+                <Link
+                  to={`/mechanisms/${mechanism.id}`}
                   key={mechanism.id}
-                  className="bg-white overflow-hidden shadow rounded-lg transition-transform duration-300 hover:shadow-lg hover:-translate-y-1"
+                  className="block bg-white overflow-hidden shadow rounded-lg transition-transform duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer"
                 >
                   <div className="p-5">
                     <div className="flex items-center">
@@ -109,9 +110,7 @@ const MechanismListPage: React.FC = () => {
                     </div>
                     <div className="mt-4">
                       <h3 className="text-lg font-medium text-gray-900">
-                        <Link to={`/mechanisms/${mechanism.id}`} className="hover:underline">
-                          {mechanism.title}
-                        </Link>
+                        {mechanism.title}
                       </h3>
                       <p className="mt-2 text-sm text-gray-500 line-clamp-2">
                         {mechanism.description}
@@ -139,7 +138,7 @@ const MechanismListPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : !loading && (
