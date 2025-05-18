@@ -19,6 +19,7 @@ classDiagram
         +updated_at: DateTime
         +mechanisms: Relationship
         +likes: Relationship
+        +mechanism_views: Relationship
     }
     
     class Mechanism {
@@ -34,6 +35,7 @@ classDiagram
         +user: Relationship
         +categories: Relationship
         +likes: Relationship
+        +views: Relationship
     }
     
     class Category {
@@ -48,6 +50,15 @@ classDiagram
         +user_id: Integer
         +mechanism_id: Integer
         +created_at: DateTime
+        +user: Relationship
+        +mechanism: Relationship
+    }
+    
+    class MechanismView {
+        +id: Integer
+        +mechanism_id: Integer
+        +user_id: Integer
+        +viewed_at: DateTime
         +user: Relationship
         +mechanism: Relationship
     }
@@ -77,15 +88,25 @@ classDiagram
         +LikeResponse
     }
     
+    class MechanismViewSchema {
+        +MechanismViewBase
+        +MechanismViewCreate
+        +MechanismViewResponse
+        +MechanismViewCount
+        +MechanismViewsResponse
+    }
+    
     Database --> User
     Database --> Mechanism
     Database --> Category
     Database --> Like
+    Database --> MechanismView
     
     User --> UserSchema
     Mechanism --> MechanismSchema
     Category --> CategorySchema
     Like --> LikeSchema
+    MechanismView --> MechanismViewSchema
 ```
 
 ## アプリケーション構造
@@ -97,20 +118,40 @@ backend/
 │   │   ├── user.py
 │   │   ├── mechanism.py
 │   │   ├── category.py
-│   │   └── like.py
+│   │   ├── like.py
+│   │   └── mechanism_view.py
 │   ├── schemas/          # Pydanticスキーマ
 │   │   ├── user.py
 │   │   ├── mechanism.py
 │   │   ├── category.py
-│   │   └── like.py
+│   │   ├── like.py
+│   │   └── mechanism_view.py
 │   ├── routers/          # APIエンドポイント
+│   │   ├── auth.py
+│   │   ├── mechanism.py
+│   │   ├── category.py
+│   │   ├── like.py
+│   │   └── mechanism_view.py
 │   ├── services/         # ビジネスロジック
+│   │   ├── auth.py
+│   │   ├── mechanism.py
+│   │   ├── category.py
+│   │   ├── like.py
+│   │   └── mechanism_view.py
 │   ├── middlewares/      # ミドルウェア
+│   │   └── auth.py
 │   ├── utils/            # ユーティリティ関数
+│   │   └── security.py
 │   ├── database.py       # データベース設定
 │   ├── config.py         # アプリケーション設定
 │   └── main.py           # アプリケーションエントリーポイント
 └── tests/                # テスト
+    ├── test_auth.py
+    ├── test_mechanism.py
+    ├── test_category.py
+    ├── test_like.py
+    ├── test_mechanism_view.py
+    └── test_mechanism_view_api.py
 ```
 
 ## データベースモデル
@@ -118,12 +159,12 @@ backend/
 ### User
 - ユーザー情報を管理するモデル
 - メールアドレスとパスワードハッシュを保存
-- メカニズムといいねへの関連を持つ
+- メカニズム、いいね、閲覧履歴への関連を持つ
 
 ### Mechanism
 - メカニズム情報を管理するモデル
 - タイトル、説明、信頼性レベル、ファイルパスなどを保存
-- ユーザー、カテゴリー、いいねへの関連を持つ
+- ユーザー、カテゴリー、いいね、閲覧履歴への関連を持つ
 
 ### Category
 - カテゴリー情報を管理するモデル
@@ -134,6 +175,11 @@ backend/
 - いいね情報を管理するモデル
 - ユーザーとメカニズムの関連を保存
 - 一人のユーザーが同じメカニズムに複数回いいねできないようにユニーク制約を持つ
+
+### MechanismView
+- メカニズム閲覧履歴を管理するモデル
+- メカニズムIDとユーザーID（匿名ユーザーの場合はNULL）を保存
+- 閲覧日時を記録
 
 ## Pydanticスキーマ
 
@@ -158,6 +204,13 @@ backend/
 ### LikeSchema
 - LikeResponse: いいね情報表示用スキーマ
 
+### MechanismViewSchema
+- MechanismViewBase: メカニズム閲覧履歴の基本スキーマ
+- MechanismViewCreate: メカニズム閲覧履歴作成用スキーマ
+- MechanismViewResponse: メカニズム閲覧履歴レスポンス用スキーマ
+- MechanismViewCount: メカニズム閲覧回数レスポンス用スキーマ
+- MechanismViewsResponse: 複数メカニズムの閲覧回数レスポンス用スキーマ
+
 ## データフロー
 
 1. クライアントからのリクエストがAPIエンドポイント（routers）に到達
@@ -173,3 +226,12 @@ backend/
 3. トークンがクライアントに返され、以降のリクエストに使用される
 4. 保護されたエンドポイントでは、リクエストヘッダーからトークンを取得して検証
 5. トークンが有効な場合、リクエストが処理される
+
+## メカニズム閲覧回数記録フロー
+
+1. ユーザーがメカニズム詳細画面にアクセス
+2. フロントエンドがメカニズム詳細取得APIを呼び出し
+3. メカニズム詳細取得後、閲覧履歴記録APIを呼び出し
+4. バックエンドがユーザーID（匿名ユーザーの場合はNULL）とメカニズムIDを保存
+5. 閲覧回数取得APIを呼び出して総閲覧回数とユーザー個人の閲覧回数を取得
+6. フロントエンドが閲覧回数を表示

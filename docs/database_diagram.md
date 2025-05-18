@@ -42,10 +42,19 @@ erDiagram
         int category_id PK,FK
     }
     
+    MECHANISM_VIEWS {
+        int id PK
+        int mechanism_id FK
+        int user_id FK
+        datetime viewed_at
+    }
+    
     USERS ||--o{ MECHANISMS : "creates"
     USERS ||--o{ LIKES : "gives"
+    USERS ||--o{ MECHANISM_VIEWS : "views"
     MECHANISMS ||--o{ LIKES : "receives"
     MECHANISMS ||--o{ MECHANISM_CATEGORIES : "has"
+    MECHANISMS ||--o{ MECHANISM_VIEWS : "is viewed"
     CATEGORIES ||--o{ MECHANISM_CATEGORIES : "belongs to"
 ```
 
@@ -96,9 +105,19 @@ erDiagram
 | mechanism_id | Integer | PK, FK(mechanisms.id) | メカニズムID |
 | category_id | Integer | PK, FK(categories.id) | カテゴリーID |
 
+### mechanism_views テーブル
+| カラム名 | データ型 | 制約 | 説明 |
+|---------|---------|------|------|
+| id | Integer | PK, index | 閲覧履歴ID |
+| mechanism_id | Integer | FK(mechanisms.id), not null | メカニズムID |
+| user_id | Integer | FK(users.id), nullable | ユーザーID（匿名ユーザーの場合はNULL） |
+| viewed_at | DateTime | not null, default=now() | 閲覧日時 |
+
 ## リレーションシップ
 
 - User (1) - (0..*) Mechanism: ユーザーは複数のメカニズムを投稿できる
 - User (1) - (0..*) Like: ユーザーは複数のいいねを付けられる
+- User (1) - (0..*) MechanismView: ユーザーは複数のメカニズムを閲覧できる
 - Mechanism (1) - (0..*) Like: メカニズムは複数のいいねを受け取れる
+- Mechanism (1) - (0..*) MechanismView: メカニズムは複数回閲覧される
 - Mechanism (0..*) - (0..*) Category: メカニズムと複数のカテゴリーは多対多の関係

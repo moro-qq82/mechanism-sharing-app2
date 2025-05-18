@@ -17,6 +17,7 @@
 -   Unit tests required for business logic
 - 可能な限りテストを先に書くこと
 - backendのpythonのテストはpytestを使用しますが、test対象はbackend/tests/test_*.pyであることに注意してください
+  - backendのテスト実行時のコマンドは、ルートフォルダで `python -m pytest backend/tests`です
 -   Integration tests for API endpoints
 -   E2E tests for critical user flows
 
