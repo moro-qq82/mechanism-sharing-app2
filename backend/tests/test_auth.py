@@ -6,7 +6,6 @@ from backend.app.schemas.user import UserCreate
 from backend.app.services.auth import create_user, get_user_by_email, authenticate_user
 from backend.app.utils.security import get_password_hash, verify_password
 from backend.app.database import Base
-from backend.tests.conftest import client
 
 def test_password_hash():
     """パスワードのハッシュ化と検証をテストする"""
@@ -84,7 +83,7 @@ def test_authenticate_user(db_session: Session):
 
 # エンドポイントのテスト
 
-def test_register_endpoint():
+def test_register_endpoint(client):
     """ユーザー登録エンドポイントのテスト"""
     # テスト用のユーザーデータ（一意のメールアドレスを使用）
     unique_email = f"test_register_{uuid.uuid4()}@example.com"
@@ -110,7 +109,7 @@ def test_register_endpoint():
     # パスワードはレスポンスに含まれないはず
     assert "password" not in data["user"]
 
-def test_register_endpoint_duplicate_email():
+def test_register_endpoint_duplicate_email(client):
     """既存のメールアドレスでユーザー登録を試みるテスト"""
     # テスト用のユーザーデータ（一意のメールアドレスを使用）
     import uuid
@@ -131,7 +130,7 @@ def test_register_endpoint_duplicate_email():
     data = response.json()
     assert "detail" in data  # エラーメッセージが含まれているはず
 
-def test_login_endpoint():
+def test_login_endpoint(client):
     """ログインエンドポイントのテスト"""
     # テスト用のユーザーを登録（一意のメールアドレスを使用）
     import uuid
@@ -153,7 +152,7 @@ def test_login_endpoint():
     assert "user" in data
     assert data["user"]["email"] == user_data["email"]
 
-def test_login_endpoint_invalid_credentials():
+def test_login_endpoint_invalid_credentials(client):
     """無効な認証情報でログインを試みるテスト"""
     # テスト用のユーザーを登録（一意のメールアドレスを使用）
     import uuid
@@ -176,7 +175,7 @@ def test_login_endpoint_invalid_credentials():
     data = response.json()
     assert "detail" in data  # エラーメッセージが含まれているはず
 
-def test_login_endpoint_nonexistent_user():
+def test_login_endpoint_nonexistent_user(client):
     """存在しないユーザーでログインを試みるテスト"""
     # 存在しないユーザーでログインリクエストを送信
     invalid_data = {

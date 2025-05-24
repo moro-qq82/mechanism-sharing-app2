@@ -30,7 +30,18 @@ def test_create_mechanism_view(db_session: Session, test_mechanism):
 
 def test_get_mechanism_views_count(db_session: Session, test_mechanism, test_mechanism_view):
     """メカニズム総閲覧回数取得のテスト"""
-    # 既存の閲覧履歴（test_mechanism_view）に加えてもう1件追加
+    # テスト前にデータベースをクリーンアップ
+    db_session.query(MechanismView).filter(MechanismView.mechanism_id == test_mechanism.id).delete()
+    db_session.commit()
+    
+    # 閲覧履歴を1件作成
+    test_view = MechanismViewService.create_mechanism_view(
+        db=db_session,
+        mechanism_id=test_mechanism.id,
+        user_id=test_mechanism.user_id
+    )
+    
+    # 匿名ユーザーの閲覧履歴をもう1件追加
     MechanismViewService.create_mechanism_view(
         db=db_session,
         mechanism_id=test_mechanism.id,
@@ -45,7 +56,17 @@ def test_get_mechanism_views_count(db_session: Session, test_mechanism, test_mec
 
 def test_get_user_mechanism_views_count(db_session: Session, test_mechanism, test_user, test_mechanism_view):
     """特定ユーザーのメカニズム閲覧回数取得のテスト"""
-    # 既存の閲覧履歴（test_mechanism_view）に加えて同じユーザーの閲覧をもう1件追加
+    # テスト前にデータベースをクリーンアップ
+    db_session.query(MechanismView).filter(MechanismView.mechanism_id == test_mechanism.id).delete()
+    db_session.commit()
+    
+    # 同じユーザーの閲覧を2件追加
+    MechanismViewService.create_mechanism_view(
+        db=db_session,
+        mechanism_id=test_mechanism.id,
+        user_id=test_user.id
+    )
+    
     MechanismViewService.create_mechanism_view(
         db=db_session,
         mechanism_id=test_mechanism.id,
@@ -71,7 +92,17 @@ def test_get_user_mechanism_views_count(db_session: Session, test_mechanism, tes
 
 def test_get_mechanism_views_stats(db_session: Session, test_mechanism, test_user, test_mechanism_view):
     """メカニズム閲覧統計情報取得のテスト"""
-    # 既存の閲覧履歴（test_mechanism_view）に加えて同じユーザーの閲覧をもう1件追加
+    # テスト前にデータベースをクリーンアップ
+    db_session.query(MechanismView).filter(MechanismView.mechanism_id == test_mechanism.id).delete()
+    db_session.commit()
+    
+    # 同じユーザーの閲覧を2件追加
+    MechanismViewService.create_mechanism_view(
+        db=db_session,
+        mechanism_id=test_mechanism.id,
+        user_id=test_user.id
+    )
+    
     MechanismViewService.create_mechanism_view(
         db=db_session,
         mechanism_id=test_mechanism.id,
@@ -108,6 +139,17 @@ def test_get_mechanism_views_stats(db_session: Session, test_mechanism, test_use
 
 def test_get_mechanisms_views_stats(db_session: Session, test_mechanism, test_user, test_mechanism_view):
     """複数メカニズムの閲覧統計情報取得のテスト"""
+    # テスト前にデータベースをクリーンアップ
+    db_session.query(MechanismView).delete()
+    db_session.commit()
+    
+    # 1つ目のメカニズムの閲覧履歴を1件追加
+    MechanismViewService.create_mechanism_view(
+        db=db_session,
+        mechanism_id=test_mechanism.id,
+        user_id=test_user.id
+    )
+    
     # 2つ目のメカニズムを作成
     from backend.app.models.mechanism import Mechanism
     second_mechanism = Mechanism(

@@ -118,7 +118,8 @@ def test_get_or_create_categories_whitespace(db_session: Session):
 def test_create_mechanism(mock_get_or_create_categories, db_session: Session, test_user):
     """メカニズム作成のテスト"""
     # モックの設定
-    test_categories = [Category(id=1, name="テストカテゴリー")]
+    # IDを指定せずにCategoryオブジェクトを作成（データベースが自動的にIDを割り当てる）
+    test_categories = [Category(name="テストカテゴリー")]
     mock_get_or_create_categories.return_value = test_categories
     
     # テストデータ

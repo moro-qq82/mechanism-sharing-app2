@@ -1,4 +1,6 @@
 import pytest
+import os
+import tempfile
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -14,34 +16,44 @@ from backend.app.models.like import Like
 from backend.app.models.mechanism_view import MechanismView
 from backend.app.main import app
 
-# テスト用のインメモリSQLiteデータベースを設定
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-test_engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
 
-# テスト用セッションファクトリを作成
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
-# テスト用のデータベース依存関係を上書き
-def override_get_db():
-    db = TestingSessionLocal()
+# # テスト用のクライアントを作成
+# client = TestClient(app)
+
+
+@pytest.fixture(scope="module")
+def test_engine():
+    # 一時ファイルを作成
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
+        db_path = tmp.name
+    SQLALCHEMY_DATABASE_URL = f"sqlite:///{db_path}"
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+    )
+    Base.metadata.create_all(bind=engine)
+    yield engine
+    Base.metadata.drop_all(bind=engine)
+    # エンジンを閉じてからファイルを削除
+    engine.dispose()
+    # Windows環境ではファイルの削除に失敗することがあるため、try-exceptで囲む
     try:
-        yield db
-    finally:
-        db.close()
+        os.remove(db_path)
+    except PermissionError:
+        # ファイルが使用中の場合は警告を出すだけにする
+        import warnings
+        warnings.warn(f"Could not delete temporary database file: {db_path}")
 
-# アプリケーションの依存関係を上書き
-app.dependency_overrides[get_db] = override_get_db
 
-# テスト用のクライアントを作成
-client = TestClient(app)
+@pytest.fixture(scope="module")
+def TestingSessionLocal(test_engine):
+    return sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
 
 # テスト前にテーブルを作成
 @pytest.fixture(scope="module", autouse=True)
-def setup_test_db():
+def setup_test_db(test_engine):
     # テスト用テーブルを作成
     # 全てのモデルをインポートして、テーブルが正しく作成されるようにする
     from backend.app.models.user import User
@@ -56,14 +68,30 @@ def setup_test_db():
     # テスト後にテーブルを削除
     Base.metadata.drop_all(bind=test_engine)
 
+
+
+@pytest.fixture(scope="module")
+def client(setup_test_db, TestingSessionLocal):
+    from backend.app.main import app
+    from fastapi.testclient import TestClient
+    # テスト用のデータベース依存関係を上書き
+    def override_get_db():
+        db = TestingSessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    # アプリケーションの依存関係を上書き
+    app.dependency_overrides[get_db] = override_get_db
+    return TestClient(app)
+
+
 @pytest.fixture(scope="function")
-def db_session():
+def db_session(TestingSessionLocal):
     """
     テスト用データベースセッションを提供するフィクスチャ
     """
-    # テスト用テーブルを作成
-    Base.metadata.create_all(bind=test_engine)
-    
     # テスト用セッションを作成
     session = TestingSessionLocal()
     
@@ -73,15 +101,20 @@ def db_session():
         # テスト後にセッションをロールバックしてクリーンアップ
         session.rollback()
         session.close()
-        
-        # テスト用テーブルを削除
-        Base.metadata.drop_all(bind=test_engine)
 
 @pytest.fixture(scope="function")
 def test_user(db_session):
     """
     テスト用ユーザーを提供するフィクスチャ
     """
+    # 既存のユーザーを検索
+    existing_user = db_session.query(User).filter(User.email == "test@example.com").first()
+    
+    # 既存のユーザーがあればそれを返す
+    if existing_user:
+        return existing_user
+    
+    # 新しいユーザーを作成
     user = User(
         email="test@example.com",
         password_hash="hashed_password"
@@ -96,8 +129,20 @@ def test_category(db_session):
     """
     テスト用カテゴリーを提供するフィクスチャ
     """
+    # 一意の名前を生成するために現在時刻のタイムスタンプを使用
+    import time
+    unique_name = f"テストカテゴリー_{time.time()}"
+    
+    # 既存のカテゴリーを検索
+    existing_category = db_session.query(Category).filter(Category.name.like("テストカテゴリー%")).first()
+    
+    # 既存のカテゴリーがあればそれを返す
+    if existing_category:
+        return existing_category
+    
+    # 新しいカテゴリーを作成
     category = Category(
-        name="テストカテゴリー"
+        name=unique_name
     )
     db_session.add(category)
     db_session.commit()
@@ -109,6 +154,22 @@ def test_mechanism(db_session, test_user, test_category):
     """
     テスト用メカニズムを提供するフィクスチャ
     """
+    # 既存のメカニズムを検索
+    existing_mechanism = db_session.query(Mechanism).filter(
+        Mechanism.title == "テストメカニズム",
+        Mechanism.user_id == test_user.id
+    ).first()
+    
+    # 既存のメカニズムがあればそれを返す
+    if existing_mechanism:
+        # カテゴリーが関連付けられていない場合は関連付ける
+        if test_category not in existing_mechanism.categories:
+            existing_mechanism.categories.append(test_category)
+            db_session.commit()
+            db_session.refresh(existing_mechanism)
+        return existing_mechanism
+    
+    # 新しいメカニズムを作成
     mechanism = Mechanism(
         title="テストメカニズム",
         description="これはテスト用のメカニズムです",
@@ -128,6 +189,17 @@ def test_like(db_session, test_user, test_mechanism):
     """
     テスト用いいねを提供するフィクスチャ
     """
+    # 既存のいいねを検索
+    existing_like = db_session.query(Like).filter(
+        Like.user_id == test_user.id,
+        Like.mechanism_id == test_mechanism.id
+    ).first()
+    
+    # 既存のいいねがあればそれを返す
+    if existing_like:
+        return existing_like
+    
+    # 新しいいいねを作成
     like = Like(
         user_id=test_user.id,
         mechanism_id=test_mechanism.id
@@ -142,6 +214,17 @@ def test_mechanism_view(db_session, test_user, test_mechanism):
     """
     テスト用メカニズム閲覧履歴を提供するフィクスチャ
     """
+    # 既存のメカニズム閲覧履歴を検索
+    existing_view = db_session.query(MechanismView).filter(
+        MechanismView.user_id == test_user.id,
+        MechanismView.mechanism_id == test_mechanism.id
+    ).first()
+    
+    # 既存のメカニズム閲覧履歴があればそれを返す
+    if existing_view:
+        return existing_view
+    
+    # 新しいメカニズム閲覧履歴を作成
     mechanism_view = MechanismView(
         mechanism_id=test_mechanism.id,
         user_id=test_user.id

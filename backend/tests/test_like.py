@@ -49,21 +49,37 @@ def test_create_like(db_session: Session, test_user, test_mechanism):
 
 def test_delete_like(db_session: Session, test_user, test_mechanism):
     """いいね削除のテスト"""
-    # 新しいいいねを作成
-    like = LikeService.create_like(db_session, test_user.id, test_mechanism.id)
+    # 新しいメカニズムを作成してそれにいいねする
+    new_mechanism = Mechanism(
+        title="削除テスト用メカニズム",
+        description="これは削除テスト用のメカニズムです",
+        reliability=2,
+        file_path="/test/delete_test_file.pdf",
+        thumbnail_path="/test/delete_test_thumbnail.jpg",
+        user_id=test_user.id
+    )
+    db_session.add(new_mechanism)
+    db_session.commit()
+    db_session.refresh(new_mechanism)
+    
+    # 新しいメカニズムにいいねを作成
+    like = LikeService.create_like(db_session, test_user.id, new_mechanism.id)
     
     # 削除を実行
-    result = LikeService.delete_like(db_session, test_user.id, test_mechanism.id)
+    result = LikeService.delete_like(db_session, test_user.id, new_mechanism.id)
     assert result is True
     
     # データベースから削除されたことを確認
-    db_like = LikeService.get_like(db_session, test_user.id, test_mechanism.id)
+    db_like = LikeService.get_like(db_session, test_user.id, new_mechanism.id)
     assert db_like is None
 
 def test_delete_like_not_found(db_session: Session, test_user, test_mechanism):
     """存在しないいいねの削除テスト"""
-    # 別のメカニズムIDを使用
-    non_existent_mechanism_id = test_mechanism.id + 1
+    # 存在しないメカニズムIDを使用
+    # 実際にデータベースに存在しない大きな値を使用
+    non_existent_mechanism_id = 99999
+    
+    # 削除を実行
     result = LikeService.delete_like(db_session, test_user.id, non_existent_mechanism_id)
     assert result is False
 
