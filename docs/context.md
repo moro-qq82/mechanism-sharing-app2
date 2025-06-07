@@ -114,7 +114,10 @@
      - `frontend/src/pages/MechanismDetailPage.tsx`を修正し、useEffect内で直接閲覧履歴を記録するのではなく、メカニズム詳細取得後に閲覧履歴を記録するよう変更
      - テストコードも更新して新しい実装に対応
    - 結果：ユーザーが確認したが、まだ２ずつ増えている
-
+29. バックエンドテストの改善 (2025-06-08完了)
+   - `conftest.py` のデータ生成フィクスチャ (`test_user`, `test_category`, `test_mechanism`, `test_like`, `test_mechanism_view`) が、常に新しいユニークなエンティティを生成するように修正し、テストの独立性を向上させました。
+   - 各テストファイル (`test_auth.py`, `test_category.py`, `test_database.py`, `test_like.py`, `test_mechanism.py`, `test_mechanism_view.py`, `test_mechanism_view_api.py`) において、アサーションの具体性を向上させ、手動でのデータクリーンアップ処理を削除し、依存関係オーバーライドの後始末処理を追加するなど、テスト全体の信頼性と保守性を高める改善を行いました。
+   - `test_mechanism.py` にはページネーションテストとモックを使用しないメカニズム作成テストを追加しました。
 26. バックエンドの認証テスト修正（2025-05-10完了）
    - 問題：`backend/tests/test_auth.py`のテストが失敗していた
    - 原因：

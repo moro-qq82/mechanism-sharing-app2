@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi import UploadFile
 import io
 from unittest.mock import patch, MagicMock
+import time # For unique names
 
 from backend.app.models.mechanism import Mechanism
 from backend.app.models.category import Category
@@ -11,16 +12,72 @@ from backend.app.services.mechanism import MechanismService
 
 def test_get_mechanisms(db_session: Session, test_mechanism: Mechanism):
     """メカニズム一覧取得のテスト"""
-    result = MechanismService.get_mechanisms(db_session)
+    result = MechanismService.get_mechanisms(db_session) # Default: page=1, limit=10
     
-    assert result["total"] >= 1
-    assert len(result["items"]) >= 1
+    # test_mechanismフィクスチャによって1つのメカニズムが作成されているはず
+    assert result["total"] == 1
+    assert len(result["items"]) == 1
     assert result["page"] == 1
-    assert result["limit"] == 10
-    assert result["pages"] >= 1
+    assert result["limit"] == 10 # Default limit
+    assert result["pages"] == 1
     
     # テスト用メカニズムが含まれていることを確認
-    assert any(mechanism.id == test_mechanism.id for mechanism in result["items"])
+    assert result["items"][0].id == test_mechanism.id
+    assert result["items"][0].title == test_mechanism.title
+
+def test_get_mechanisms_pagination(db_session: Session, test_user): # test_mechanismフィクスチャへの依存を削除
+    """メカニズム一覧取得のページネーションテスト"""
+    # 既存のメカニズムをクリアする（あるいは、テストDBを毎回クリーンにする設定があれば不要）
+    # 今回は、テストの独立性を高めるために、このテスト専用のデータを投入する前にクリアする
+    db_session.query(Mechanism).delete()
+    db_session.commit()
+
+    # 複数のメカニズムを作成
+    mechanisms_data = []
+    for i in range(15): # Create 15 mechanisms
+        mechanism = Mechanism(
+            title=f"Test Mechanism {i} {time.time()}", # Ensure unique titles
+            description=f"Description {i}",
+            reliability=i % 5 + 1,
+            user_id=test_user.id,
+            file_path=f"/test/file{i}.pdf",
+            thumbnail_path=f"/test/thumb{i}.jpg"
+        )
+        mechanisms_data.append(mechanism)
+    db_session.add_all(mechanisms_data)
+    db_session.commit()
+    for m in mechanisms_data:
+        db_session.refresh(m)
+
+    # 1ページ目、limit=5
+    skip1 = (1 - 1) * 5
+    result_page1_limit5 = MechanismService.get_mechanisms(db_session, skip=skip1, limit=5)
+    assert result_page1_limit5["total"] == 15
+    assert len(result_page1_limit5["items"]) == 5
+    assert result_page1_limit5["page"] == 1
+    assert result_page1_limit5["limit"] == 5
+    assert result_page1_limit5["pages"] == 3 # 15 items / 5 per page = 3 pages
+
+    # 2ページ目、limit=5
+    skip2 = (2 - 1) * 5
+    result_page2_limit5 = MechanismService.get_mechanisms(db_session, skip=skip2, limit=5)
+    assert len(result_page2_limit5["items"]) == 5
+    assert result_page2_limit5["page"] == 2
+
+    # 3ページ目、limit=5
+    skip3 = (3 - 1) * 5
+    result_page3_limit5 = MechanismService.get_mechanisms(db_session, skip=skip3, limit=5)
+    assert len(result_page3_limit5["items"]) == 5
+    assert result_page3_limit5["page"] == 3
+    
+    # 存在しないページ
+    skip4 = (4 - 1) * 5
+    result_page4_limit5 = MechanismService.get_mechanisms(db_session, skip=skip4, limit=5)
+    assert len(result_page4_limit5["items"]) == 0
+    assert result_page4_limit5["page"] == 4
+    assert result_page4_limit5["total"] == 15
+    assert result_page4_limit5["pages"] == 3
+
 
 def test_get_mechanism_by_id(db_session: Session, test_mechanism: Mechanism):
     """IDによるメカニズム取得のテスト"""
@@ -28,7 +85,8 @@ def test_get_mechanism_by_id(db_session: Session, test_mechanism: Mechanism):
     
     assert mechanism is not None
     assert mechanism.id == test_mechanism.id
-    assert mechanism.title == test_mechanism.title
+    # フィクスチャが生成する実際の値と比較
+    assert mechanism.title == test_mechanism.title 
     assert mechanism.description == test_mechanism.description
     assert mechanism.reliability == test_mechanism.reliability
     assert mechanism.file_path == test_mechanism.file_path
@@ -39,18 +97,23 @@ def test_get_mechanism_by_id_not_found(db_session: Session):
     mechanism = MechanismService.get_mechanism_by_id(db_session, 999)
     assert mechanism is None
 
-def test_get_likes_count(db_session: Session, test_mechanism: Mechanism, test_like):
+def test_get_likes_count(db_session: Session, test_mechanism: Mechanism, test_user): # test_like is not needed if we create like here
     """いいね数取得のテスト"""
+    # この時点ではいいねは0のはず
+    assert MechanismService.get_likes_count(db_session, test_mechanism.id) == 0
+    
+    # いいねを作成
+    from backend.app.models.like import Like
+    like = Like(user_id=test_user.id, mechanism_id=test_mechanism.id)
+    db_session.add(like)
+    db_session.commit()
+
     likes_count = MechanismService.get_likes_count(db_session, test_mechanism.id)
     assert likes_count == 1
 
-def test_get_likes_count_no_likes(db_session: Session, test_mechanism: Mechanism):
+def test_get_likes_count_no_likes(db_session: Session, test_mechanism: Mechanism): # test_like fixture is not used
     """いいねがない場合のいいね数取得のテスト"""
-    # テスト用いいねを削除
-    from backend.app.models.like import Like
-    db_session.query(Like).filter(Like.mechanism_id == test_mechanism.id).delete()
-    db_session.commit()
-    
+    # test_mechanismが作成された時点では、関連するLikeはないはず
     likes_count = MechanismService.get_likes_count(db_session, test_mechanism.id)
     assert likes_count == 0
 
@@ -84,7 +147,7 @@ def test_get_or_create_categories_existing(db_session: Session, test_category: C
 
 def test_get_or_create_categories_new(db_session: Session):
     """新規カテゴリー作成のテスト"""
-    category_name = "新しいカテゴリー"
+    category_name = f"新しいカテゴリー_{time.time()}" # Ensure unique name
     categories = MechanismService.get_or_create_categories(db_session, [category_name])
     
     assert len(categories) == 1
@@ -97,12 +160,15 @@ def test_get_or_create_categories_new(db_session: Session):
 
 def test_get_or_create_categories_mixed(db_session: Session, test_category: Category):
     """既存と新規が混在するカテゴリー取得・作成のテスト"""
-    new_category_name = "新しいカテゴリー2"
+    new_category_name = f"新しいカテゴリー2_{time.time()}" # Ensure unique name
     categories = MechanismService.get_or_create_categories(db_session, [test_category.name, new_category_name])
     
     assert len(categories) == 2
-    assert any(category.name == test_category.name for category in categories)
-    assert any(category.name == new_category_name for category in categories)
+    found_existing = any(cat.name == test_category.name and cat.id == test_category.id for cat in categories)
+    found_new = any(cat.name == new_category_name for cat in categories)
+    assert found_existing
+    assert found_new
+
 
 def test_get_or_create_categories_empty(db_session: Session):
     """空のカテゴリーリストのテスト"""
@@ -115,19 +181,20 @@ def test_get_or_create_categories_whitespace(db_session: Session):
     assert len(categories) == 0
 
 @patch('backend.app.services.mechanism.MechanismService.get_or_create_categories')
-def test_create_mechanism(mock_get_or_create_categories, db_session: Session, test_user):
-    """メカニズム作成のテスト"""
+def test_create_mechanism_with_mock(mock_get_or_create_categories, db_session: Session, test_user):
+    """メカニズム作成のテスト（get_or_create_categoriesをモック）"""
     # モックの設定
-    # IDを指定せずにCategoryオブジェクトを作成（データベースが自動的にIDを割り当てる）
-    test_categories = [Category(name="テストカテゴリー")]
-    mock_get_or_create_categories.return_value = test_categories
+    mock_category_name = f"モックテストカテゴリー_{time.time()}"
+    # Categoryオブジェクトを作成するが、IDはDB割り当てなのでNoneのまま
+    mock_categories_returned = [Category(name=mock_category_name)] 
+    mock_get_or_create_categories.return_value = mock_categories_returned
     
     # テストデータ
     mechanism_data = MechanismCreate(
-        title="新しいメカニズム",
+        title=f"新しいメカニズム_{time.time()}", # Ensure unique title
         description="これは新しいメカニズムです",
         reliability=4,
-        categories=["テストカテゴリー"]
+        categories=[mock_category_name] # モックが返すカテゴリ名と一致させる
     )
     
     # 関数を呼び出し
@@ -140,6 +207,7 @@ def test_create_mechanism(mock_get_or_create_categories, db_session: Session, te
     )
     
     # アサーション
+    mock_get_or_create_categories.assert_called_once_with(db_session, [mock_category_name])
     assert mechanism is not None
     assert mechanism.title == mechanism_data.title
     assert mechanism.description == mechanism_data.description
@@ -147,9 +215,62 @@ def test_create_mechanism(mock_get_or_create_categories, db_session: Session, te
     assert mechanism.file_path == "/test/new_file.pdf"
     assert mechanism.thumbnail_path == "/test/new_thumbnail.jpg"
     assert mechanism.user_id == test_user.id
-    assert mechanism.categories == test_categories
+    
+    # モックが返したカテゴリが実際に設定されているか確認
+    # 注意: mock_categories_returnedのCategoryオブジェクトはIDがないため、名前で比較
+    assert len(mechanism.categories) == 1
+    assert mechanism.categories[0].name == mock_category_name 
     
     # データベースに保存されたことを確認
-    db_mechanism = db_session.query(Mechanism).filter(Mechanism.title == mechanism_data.title).first()
+    db_mechanism = db_session.query(Mechanism).filter(Mechanism.id == mechanism.id).first()
     assert db_mechanism is not None
-    assert db_mechanism.id == mechanism.id
+    assert db_mechanism.title == mechanism_data.title
+    assert len(db_mechanism.categories) == 1
+    assert db_mechanism.categories[0].name == mock_category_name
+
+
+def test_create_mechanism_no_mock(db_session: Session, test_user):
+    """メカニズム作成のテスト（get_or_create_categoriesをモックしない）"""
+    category_name1 = f"実カテゴリー1_{time.time()}"
+    category_name2 = f"実カテゴリー2_{time.time()}"
+    
+    # テストデータ
+    mechanism_data = MechanismCreate(
+        title=f"モックなしメカニズム_{time.time()}", # Ensure unique title
+        description="これはモックなしの新しいメカニズムです",
+        reliability=3,
+        categories=[category_name1, category_name2]
+    )
+    
+    # 関数を呼び出し
+    mechanism = MechanismService.create_mechanism(
+        db=db_session,
+        mechanism=mechanism_data,
+        user_id=test_user.id,
+        file_path="/test/no_mock_file.pdf",
+        thumbnail_path="/test/no_mock_thumbnail.jpg"
+    )
+    
+    # アサーション
+    assert mechanism is not None
+    assert mechanism.title == mechanism_data.title
+    assert mechanism.user_id == test_user.id
+    
+    # カテゴリーが正しく作成または取得され、関連付けられていることを確認
+    assert len(mechanism.categories) == 2
+    created_category_names = sorted([cat.name for cat in mechanism.categories])
+    expected_category_names = sorted([category_name1, category_name2])
+    assert created_category_names == expected_category_names
+    
+    # データベースからメカニズムを再取得して確認
+    db_mechanism = db_session.query(Mechanism).filter(Mechanism.id == mechanism.id).first()
+    assert db_mechanism is not None
+    assert len(db_mechanism.categories) == 2
+    db_category_names = sorted([cat.name for cat in db_mechanism.categories])
+    assert db_category_names == expected_category_names
+
+    # カテゴリーがデータベースに存在することを確認
+    cat1_db = db_session.query(Category).filter(Category.name == category_name1).first()
+    cat2_db = db_session.query(Category).filter(Category.name == category_name2).first()
+    assert cat1_db is not None
+    assert cat2_db is not None

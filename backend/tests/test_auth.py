@@ -21,10 +21,14 @@ def test_password_hash():
     # 間違ったパスワードでは検証できないはず
     assert verify_password("wrongpassword", hashed) is False
 
+def generate_unique_email():
+    """一意のメールアドレスを生成するヘルパー関数"""
+    return f"test_user_{uuid.uuid4()}@example.com"
+
 def test_create_user(db_session: Session):
     """ユーザー作成をテストする"""
     user_data = UserCreate(
-        email="test@example.com",
+        email=generate_unique_email(),
         password="testpassword"
     )
     
@@ -86,9 +90,8 @@ def test_authenticate_user(db_session: Session):
 def test_register_endpoint(client):
     """ユーザー登録エンドポイントのテスト"""
     # テスト用のユーザーデータ（一意のメールアドレスを使用）
-    unique_email = f"test_register_{uuid.uuid4()}@example.com"
     user_data = {
-        "email": unique_email,
+        "email": generate_unique_email(),
         "password": "testpassword"
     }
     
@@ -104,18 +107,22 @@ def test_register_endpoint(client):
     assert data["token_type"] == "bearer"
     assert "user" in data
     assert data["user"]["email"] == user_data["email"]
-    assert "id" in data["user"]
-    assert "created_at" in data["user"]
+    assert isinstance(data["user"]["id"], int)
+    # created_at がISOフォーマットの文字列であることを確認（簡易的なチェック）
+    assert isinstance(data["user"]["created_at"], str)
+    try:
+        from datetime import datetime
+        datetime.fromisoformat(data["user"]["created_at"].replace("Z", "+00:00")) # FastAPI/Pydanticは 'Z' を使うことがある
+    except ValueError:
+        pytest.fail("created_at is not a valid ISO format string")
     # パスワードはレスポンスに含まれないはず
     assert "password" not in data["user"]
 
 def test_register_endpoint_duplicate_email(client):
     """既存のメールアドレスでユーザー登録を試みるテスト"""
     # テスト用のユーザーデータ（一意のメールアドレスを使用）
-    import uuid
-    unique_email = f"test_duplicate_{uuid.uuid4()}@example.com"
     user_data = {
-        "email": unique_email,
+        "email": generate_unique_email(),
         "password": "testpassword"
     }
     
@@ -133,10 +140,8 @@ def test_register_endpoint_duplicate_email(client):
 def test_login_endpoint(client):
     """ログインエンドポイントのテスト"""
     # テスト用のユーザーを登録（一意のメールアドレスを使用）
-    import uuid
-    unique_email = f"test_login_{uuid.uuid4()}@example.com"
     user_data = {
-        "email": unique_email,
+        "email": generate_unique_email(),
         "password": "testpassword"
     }
     client.post("/api/auth/register", json=user_data)
@@ -155,10 +160,8 @@ def test_login_endpoint(client):
 def test_login_endpoint_invalid_credentials(client):
     """無効な認証情報でログインを試みるテスト"""
     # テスト用のユーザーを登録（一意のメールアドレスを使用）
-    import uuid
-    unique_email = f"test_invalid_login_{uuid.uuid4()}@example.com"
     user_data = {
-        "email": unique_email,
+        "email": generate_unique_email(),
         "password": "testpassword"
     }
     client.post("/api/auth/register", json=user_data)

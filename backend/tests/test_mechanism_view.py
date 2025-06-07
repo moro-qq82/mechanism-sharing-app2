@@ -28,17 +28,15 @@ def test_create_mechanism_view(db_session: Session, test_mechanism):
     assert anonymous_view.mechanism_id == test_mechanism.id
     assert anonymous_view.user_id is None
 
-def test_get_mechanism_views_count(db_session: Session, test_mechanism, test_mechanism_view):
+def test_get_mechanism_views_count(db_session: Session, test_mechanism, test_user): # test_mechanism_view is not used due to cleanup
     """メカニズム総閲覧回数取得のテスト"""
-    # テスト前にデータベースをクリーンアップ
-    db_session.query(MechanismView).filter(MechanismView.mechanism_id == test_mechanism.id).delete()
-    db_session.commit()
+    # db_sessionのロールバック機能により、前のテストデータはクリアされているはず
     
-    # 閲覧履歴を1件作成
-    test_view = MechanismViewService.create_mechanism_view(
+    # 閲覧履歴を1件作成 (test_userによる閲覧)
+    MechanismViewService.create_mechanism_view(
         db=db_session,
         mechanism_id=test_mechanism.id,
-        user_id=test_mechanism.user_id
+        user_id=test_user.id # test_userを使用
     )
     
     # 匿名ユーザーの閲覧履歴をもう1件追加
@@ -54,12 +52,10 @@ def test_get_mechanism_views_count(db_session: Session, test_mechanism, test_mec
     # 合計2件の閲覧履歴があるはず
     assert views_count == 2
 
-def test_get_user_mechanism_views_count(db_session: Session, test_mechanism, test_user, test_mechanism_view):
+def test_get_user_mechanism_views_count(db_session: Session, test_mechanism, test_user): # test_mechanism_view is not used
     """特定ユーザーのメカニズム閲覧回数取得のテスト"""
-    # テスト前にデータベースをクリーンアップ
-    db_session.query(MechanismView).filter(MechanismView.mechanism_id == test_mechanism.id).delete()
-    db_session.commit()
-    
+    # db_sessionのロールバック機能により、前のテストデータはクリアされているはず
+
     # 同じユーザーの閲覧を2件追加
     MechanismViewService.create_mechanism_view(
         db=db_session,
@@ -90,12 +86,10 @@ def test_get_user_mechanism_views_count(db_session: Session, test_mechanism, tes
     # テストユーザーの閲覧は2件のはず
     assert user_views_count == 2
 
-def test_get_mechanism_views_stats(db_session: Session, test_mechanism, test_user, test_mechanism_view):
+def test_get_mechanism_views_stats(db_session: Session, test_mechanism, test_user): # test_mechanism_view is not used
     """メカニズム閲覧統計情報取得のテスト"""
-    # テスト前にデータベースをクリーンアップ
-    db_session.query(MechanismView).filter(MechanismView.mechanism_id == test_mechanism.id).delete()
-    db_session.commit()
-    
+    # db_sessionのロールバック機能により、前のテストデータはクリアされているはず
+
     # 同じユーザーの閲覧を2件追加
     MechanismViewService.create_mechanism_view(
         db=db_session,
@@ -137,13 +131,11 @@ def test_get_mechanism_views_stats(db_session: Session, test_mechanism, test_use
     assert stats_without_user["total_views"] == 3  # 合計3件の閲覧
     assert "user_views" not in stats_without_user  # ユーザー閲覧数は含まれない
 
-def test_get_mechanisms_views_stats(db_session: Session, test_mechanism, test_user, test_mechanism_view):
+def test_get_mechanisms_views_stats(db_session: Session, test_mechanism, test_user): # test_mechanism_view is not used
     """複数メカニズムの閲覧統計情報取得のテスト"""
-    # テスト前にデータベースをクリーンアップ
-    db_session.query(MechanismView).delete()
-    db_session.commit()
+    # db_sessionのロールバック機能により、前のテストデータはクリアされているはず
     
-    # 1つ目のメカニズムの閲覧履歴を1件追加
+    # 1つ目のメカニズム(test_mechanism)の閲覧履歴を1件追加
     MechanismViewService.create_mechanism_view(
         db=db_session,
         mechanism_id=test_mechanism.id,
@@ -152,8 +144,9 @@ def test_get_mechanisms_views_stats(db_session: Session, test_mechanism, test_us
     
     # 2つ目のメカニズムを作成
     from backend.app.models.mechanism import Mechanism
+    import time
     second_mechanism = Mechanism(
-        title="2つ目のテストメカニズム",
+        title=f"2つ目のテストメカニズム_{time.time()}", # Ensure unique title
         description="これは2つ目のテスト用メカニズムです",
         reliability=4,
         file_path="/test/file2.pdf",

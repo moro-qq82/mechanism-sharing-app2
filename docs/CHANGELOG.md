@@ -185,6 +185,15 @@
   - マイグレーションの状態確認方法とマイグレーション履歴確認方法を追加
 
 ### 修正
+- バックエンドテストの改善 (2025-06-08)
+  - `conftest.py` のデータ生成フィクスチャ (`test_user`, `test_category`, `test_mechanism`, `test_like`, `test_mechanism_view`) が、常に新しいユニークなエンティティを生成するように修正し、テストの独立性を向上。
+  - 各テストファイル (`test_auth.py`, `test_category.py`, `test_database.py`, `test_like.py`, `test_mechanism.py`, `test_mechanism_view.py`, `test_mechanism_view_api.py`) において、以下の点を改善:
+    - アサーションの具体性を向上（例: `len() >= 1` を `len() == 1` に）。
+    - `db_session` フィクスチャのロールバック機能に依存するため、手動でのデータクリーンアップ処理を削除。
+    - `app.dependency_overrides` を使用した箇所で、テスト終了時にオーバーライドを元に戻す処理を追加。
+    - フィクスチャの変更に合わせてテストロジックとアサーションを調整。
+    - 一意なメールアドレスやエンティティ名を生成するためのヘルパー関数や `time.time()` の使用を導入。
+    - `test_mechanism.py` にページネーションテストとモックなしのメカニズム作成テストを追加。
 - テスト実行時のデータベース設定の修正(2025-05-25)
   - 問題：`test_mechanism_view_api.py`のテストが単独で実行すると成功するが、testsフォルダ全体で実行すると「no such table」エラーが発生
   - 原因：`test_mechanism_view_api.py`が独自のデータベース設定（`test_api.db`）を使用していたが、testsフォルダ全体のテストでは`conftest.py`の設定（一時ファイルを使用したデータベース）が優先されるため

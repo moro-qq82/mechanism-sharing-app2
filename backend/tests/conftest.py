@@ -106,17 +106,12 @@ def db_session(TestingSessionLocal):
 def test_user(db_session):
     """
     テスト用ユーザーを提供するフィクスチャ
+    常に新しいユニークなユーザーを生成します。
     """
-    # 既存のユーザーを検索
-    existing_user = db_session.query(User).filter(User.email == "test@example.com").first()
-    
-    # 既存のユーザーがあればそれを返す
-    if existing_user:
-        return existing_user
-    
-    # 新しいユーザーを作成
+    import time
+    unique_email = f"test_user_{time.time()}@example.com"
     user = User(
-        email="test@example.com",
+        email=unique_email,
         password_hash="hashed_password"
     )
     db_session.add(user)
@@ -128,19 +123,10 @@ def test_user(db_session):
 def test_category(db_session):
     """
     テスト用カテゴリーを提供するフィクスチャ
+    常に新しいユニークなカテゴリーを生成します。
     """
-    # 一意の名前を生成するために現在時刻のタイムスタンプを使用
     import time
     unique_name = f"テストカテゴリー_{time.time()}"
-    
-    # 既存のカテゴリーを検索
-    existing_category = db_session.query(Category).filter(Category.name.like("テストカテゴリー%")).first()
-    
-    # 既存のカテゴリーがあればそれを返す
-    if existing_category:
-        return existing_category
-    
-    # 新しいカテゴリーを作成
     category = Category(
         name=unique_name
     )
@@ -153,25 +139,12 @@ def test_category(db_session):
 def test_mechanism(db_session, test_user, test_category):
     """
     テスト用メカニズムを提供するフィクスチャ
+    常に新しいユニークなメカニズムを生成します。
     """
-    # 既存のメカニズムを検索
-    existing_mechanism = db_session.query(Mechanism).filter(
-        Mechanism.title == "テストメカニズム",
-        Mechanism.user_id == test_user.id
-    ).first()
-    
-    # 既存のメカニズムがあればそれを返す
-    if existing_mechanism:
-        # カテゴリーが関連付けられていない場合は関連付ける
-        if test_category not in existing_mechanism.categories:
-            existing_mechanism.categories.append(test_category)
-            db_session.commit()
-            db_session.refresh(existing_mechanism)
-        return existing_mechanism
-    
-    # 新しいメカニズムを作成
+    import time
+    unique_title = f"テストメカニズム_{time.time()}"
     mechanism = Mechanism(
-        title="テストメカニズム",
+        title=unique_title,
         description="これはテスト用のメカニズムです",
         reliability=3,
         file_path="/test/file.pdf",
@@ -188,18 +161,8 @@ def test_mechanism(db_session, test_user, test_category):
 def test_like(db_session, test_user, test_mechanism):
     """
     テスト用いいねを提供するフィクスチャ
+    常に新しいいいねを生成します。
     """
-    # 既存のいいねを検索
-    existing_like = db_session.query(Like).filter(
-        Like.user_id == test_user.id,
-        Like.mechanism_id == test_mechanism.id
-    ).first()
-    
-    # 既存のいいねがあればそれを返す
-    if existing_like:
-        return existing_like
-    
-    # 新しいいいねを作成
     like = Like(
         user_id=test_user.id,
         mechanism_id=test_mechanism.id
@@ -213,18 +176,8 @@ def test_like(db_session, test_user, test_mechanism):
 def test_mechanism_view(db_session, test_user, test_mechanism):
     """
     テスト用メカニズム閲覧履歴を提供するフィクスチャ
+    常に新しいメカニズム閲覧履歴を生成します。
     """
-    # 既存のメカニズム閲覧履歴を検索
-    existing_view = db_session.query(MechanismView).filter(
-        MechanismView.user_id == test_user.id,
-        MechanismView.mechanism_id == test_mechanism.id
-    ).first()
-    
-    # 既存のメカニズム閲覧履歴があればそれを返す
-    if existing_view:
-        return existing_view
-    
-    # 新しいメカニズム閲覧履歴を作成
     mechanism_view = MechanismView(
         mechanism_id=test_mechanism.id,
         user_id=test_user.id

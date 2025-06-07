@@ -8,9 +8,10 @@ from backend.app.services.category import CategoryService
 def test_get_categories(db_session: Session, test_category: Category):
     """カテゴリー一覧取得のテスト"""
     categories = CategoryService.get_categories(db_session)
-    assert len(categories) >= 1
-    assert any(category.id == test_category.id for category in categories)
-    assert any(category.name == test_category.name for category in categories)
+    # test_categoryフィクスチャによって1つのカテゴリが作成されているはず
+    assert len(categories) == 1
+    assert categories[0].id == test_category.id
+    assert categories[0].name == test_category.name
 
 def test_get_category_by_id(db_session: Session, test_category: Category):
     """IDによるカテゴリー取得のテスト"""
