@@ -41,8 +41,32 @@
 - Node.js 18以上
 - Python 3.10以上
 - PostgreSQL 14以上
+- uv（Pythonパッケージマネージャー）
 
-### バックエンドのセットアップ
+### 簡単起動（推奨）
+
+**Windows環境の場合、バッチファイルを使用して簡単にアプリケーションを起動できます：**
+
+1. アプリケーションを起動
+   ```
+   start_app.bat
+   ```
+   
+   このバッチファイルは以下の処理を自動で行います：
+   - バックエンドの依存関係のインストール（初回のみ）
+   - フロントエンドの依存関係のインストール（初回のみ）
+   - データベースマイグレーションの実行
+   - バックエンドサーバーの起動（ポート8000）
+   - フロントエンドサーバーの起動（ポート3000）
+
+2. アプリケーションを停止
+   ```
+   stop_app.bat
+   ```
+
+### 手動セットアップ
+
+#### バックエンドのセットアップ
 
 1. リポジトリをクローン
    ```
@@ -50,27 +74,17 @@
    cd mechanism_sharing_app
    ```
 
-2. 仮想環境を作成して有効化
+2. 依存関係をインストール
    ```
-   python -m venv venv
-   # Windowsの場合
-   venv\Scripts\activate
-   # macOS/Linuxの場合
-   source venv/bin/activate
+   uv pip install -r backend/requirements.txt
    ```
 
-3. 依存関係をインストール
-   ```
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-4. PostgreSQLデータベースを作成
+3. PostgreSQLデータベースを作成
    ```
    createdb mechanism_db
    ```
 
-5. データベースマイグレーションを実行
+4. データベースマイグレーションを実行
    ```
    # プロジェクトのルートディレクトリで実行
    alembic upgrade head
@@ -88,13 +102,12 @@
    alembic history
    ```
 
-6. ルートディレクトリで開発サーバーを起動
+5. 開発サーバーを起動
    ```
-   cd ..
    uvicorn backend.app.main:app --reload
    ```
 
-### フロントエンドのセットアップ
+#### フロントエンドのセットアップ
 
 1. 依存関係をインストール
    ```

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getReliabilityLabel, getReliabilityColorClass } from '../utils/reliabilityUtils';
 import MechanismService from '../services/mechanismService';
@@ -23,6 +23,9 @@ const MechanismDetailPage: React.FC = () => {
   const [likesCount, setLikesCount] = useState<number>(0);
   const [viewsCount, setViewsCount] = useState<{ total: number; user?: number }>({ total: 0 });
 
+  // React.StrictModeによる重複実行を防ぐためのref
+  const viewRecordedRef = useRef<boolean>(false);
+
   // メカニズム詳細を取得する関数
   const fetchMechanismDetail = async () => {
     try {
@@ -32,12 +35,18 @@ const MechanismDetailPage: React.FC = () => {
       setLikesCount(data.likes_count);
       setError(null);
       
-      // 詳細取得後に閲覧履歴を記録
-      try {
-        await MechanismService.recordMechanismView(mechanismId);
+      // 詳細取得後に閲覧履歴を記録（重複防止）
+      if (!viewRecordedRef.current) {
+        try {
+          await MechanismService.recordMechanismView(mechanismId);
+          viewRecordedRef.current = true; // 記録済みフラグを設定
+          fetchMechanismViews();
+        } catch (err) {
+          console.error(`閲覧履歴の記録エラー:`, err);
+        }
+      } else {
+        // 既に記録済みの場合は閲覧回数のみ取得
         fetchMechanismViews();
-      } catch (err) {
-        console.error(`閲覧履歴の記録エラー:`, err);
       }
     } catch (err) {
       setError('メカニズム詳細の取得に失敗しました。');
