@@ -148,16 +148,16 @@ const MechanismListPage: React.FC = () => {
                       </div>
                       <div className="mt-3 flex items-center justify-between">
                         <div className="flex space-x-2">
-                          <span className="text-sm text-gray-500">
-                            いいね {mechanism.likes_count}件
-                          </span>
                           {mechanism.views_count !== undefined && (
                             <span className="text-sm text-gray-500">
-                              閲覧 {mechanism.views_count}回
+                              閲覧<br />{mechanism.views_count}回
                             </span>
                           )}
                           <span className="text-sm text-gray-500">
-                            ダウンロード {downloadsCountMap[mechanism.id] || 0}回
+                            いいね<br />{mechanism.likes_count}件
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            ダウンロード<br />{downloadsCountMap[mechanism.id] || 0}回
                           </span>
                         </div>
                         <span className="text-xs text-gray-400">
