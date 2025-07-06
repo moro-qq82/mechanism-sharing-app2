@@ -52,3 +52,15 @@ export interface MechanismViewCount {
 export interface MechanismViewsResponse {
   items: MechanismViewCount[];
 }
+
+// メカニズムダウンロード回数の型
+export interface MechanismDownloadCount {
+  mechanism_id: number;
+  total_downloads: number;
+  user_downloads?: number;
+}
+
+// 複数メカニズムのダウンロード回数レスポンスの型
+export interface MechanismDownloadsResponse {
+  items: MechanismDownloadCount[];
+}

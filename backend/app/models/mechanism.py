@@ -30,3 +30,4 @@ class Mechanism(Base):
     categories = relationship("Category", secondary=mechanism_category, back_populates="mechanisms")
     likes = relationship("Like", back_populates="mechanism")
     views = relationship("MechanismView", back_populates="mechanism")
+    downloads = relationship("MechanismDownload", back_populates="mechanism")

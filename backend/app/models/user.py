@@ -17,3 +17,4 @@ class User(Base):
     mechanisms = relationship("Mechanism", back_populates="user")
     likes = relationship("Like", back_populates="user")
     mechanism_views = relationship("MechanismView", back_populates="user")
+    mechanism_downloads = relationship("MechanismDownload", back_populates="user")

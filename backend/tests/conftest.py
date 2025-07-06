@@ -14,6 +14,7 @@ from backend.app.models.mechanism import Mechanism
 from backend.app.models.category import Category
 from backend.app.models.like import Like
 from backend.app.models.mechanism_view import MechanismView
+from backend.app.models.mechanism_download import MechanismDownload
 from backend.app.main import app
 
 
@@ -51,6 +52,16 @@ def TestingSessionLocal(test_engine):
     return sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
+# TestSessionLocalエイリアスを追加（既存テストとの互換性のため）
+TestSessionLocal = None
+
+
+@pytest.fixture(scope="module", autouse=True)
+def setup_session_local(TestingSessionLocal):
+    global TestSessionLocal
+    TestSessionLocal = TestingSessionLocal
+
+
 # テスト前にテーブルを作成
 @pytest.fixture(scope="module", autouse=True)
 def setup_test_db(test_engine):
@@ -61,6 +72,7 @@ def setup_test_db(test_engine):
     from backend.app.models.category import Category
     from backend.app.models.like import Like
     from backend.app.models.mechanism_view import MechanismView
+    from backend.app.models.mechanism_download import MechanismDownload
     
     # テーブルを作成
     Base.metadata.create_all(bind=test_engine)
@@ -70,17 +82,22 @@ def setup_test_db(test_engine):
 
 
 
+# テスト用のデータベース依存関係を上書きする関数
+def override_get_db():
+    global TestSessionLocal
+    if TestSessionLocal is None:
+        raise RuntimeError("TestSessionLocal is not initialized")
+    db = TestSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 @pytest.fixture(scope="module")
 def client(setup_test_db, TestingSessionLocal):
     from backend.app.main import app
     from fastapi.testclient import TestClient
-    # テスト用のデータベース依存関係を上書き
-    def override_get_db():
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
 
     # アプリケーションの依存関係を上書き
     app.dependency_overrides[get_db] = override_get_db

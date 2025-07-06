@@ -22,6 +22,7 @@ const MechanismDetailPage: React.FC = () => {
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [likesCount, setLikesCount] = useState<number>(0);
   const [viewsCount, setViewsCount] = useState<{ total: number; user?: number }>({ total: 0 });
+  const [downloadsCount, setDownloadsCount] = useState<{ total: number; user?: number }>({ total: 0 });
 
   // React.StrictModeによる重複実行を防ぐためのref
   const viewRecordedRef = useRef<boolean>(false);
@@ -48,6 +49,9 @@ const MechanismDetailPage: React.FC = () => {
         // 既に記録済みの場合は閲覧回数のみ取得
         fetchMechanismViews();
       }
+      
+      // ダウンロード回数を取得
+      fetchMechanismDownloads();
     } catch (err) {
       setError('メカニズム詳細の取得に失敗しました。');
       console.error(`メカニズム詳細の取得エラー:`, err);
@@ -67,6 +71,32 @@ const MechanismDetailPage: React.FC = () => {
     } catch (err) {
       console.error(`閲覧回数の取得エラー:`, err);
     }
+  };
+
+  // ダウンロード回数を取得する関数
+  const fetchMechanismDownloads = async () => {
+    try {
+      const downloadsData = await MechanismService.getMechanismDownloads(mechanismId);
+      setDownloadsCount({
+        total: downloadsData.total_downloads,
+        user: downloadsData.user_downloads
+      });
+    } catch (err) {
+      console.error(`ダウンロード回数の取得エラー:`, err);
+    }
+  };
+
+  // ダウンロードボタンのクリックハンドラ
+  const handleDownload = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    try {
+      // ダウンロード履歴を記録
+      await MechanismService.recordMechanismDownload(mechanismId);
+      // ダウンロード回数を更新
+      fetchMechanismDownloads();
+    } catch (err) {
+      console.error(`ダウンロード履歴の記録エラー:`, err);
+    }
+    // aタグのデフォルト動作（ダウンロード）は継続される
   };
 
   // いいね処理
@@ -230,6 +260,7 @@ const MechanismDetailPage: React.FC = () => {
                         <a
                           href={getFileUrl(mechanism.file_path)}
                           download
+                          onClick={handleDownload}
                           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                         >
                           ダウンロード
@@ -258,6 +289,19 @@ const MechanismDetailPage: React.FC = () => {
                       {viewsCount.user !== undefined && (
                         <span className="text-gray-600 text-xs mt-1">
                           あなたの閲覧回数: {viewsCount.user}
+                        </span>
+                      )}
+                    </div>
+                  </dd>
+                </div>
+                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">ダウンロード回数</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <div className="flex flex-col">
+                      <span>総ダウンロード回数: {downloadsCount.total}</span>
+                      {downloadsCount.user !== undefined && (
+                        <span className="text-gray-600 text-xs mt-1">
+                          あなたのダウンロード回数: {downloadsCount.user}
                         </span>
                       )}
                     </div>

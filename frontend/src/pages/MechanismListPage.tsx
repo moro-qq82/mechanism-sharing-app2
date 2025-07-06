@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MechanismService from '../services/mechanismService';
-import { Mechanism, PaginatedMechanismResponse } from '../types/mechanism';
+import { Mechanism, PaginatedMechanismResponse, MechanismDownloadCount } from '../types/mechanism';
 import { getReliabilityLabel, getReliabilityColorClass } from '../utils/reliabilityUtils';
 import { getFileUrl } from '../utils/fileUtils';
 import Loading from '../components/common/Loading';
@@ -18,6 +18,7 @@ const MechanismListPage: React.FC = () => {
     limit: 9,
     pages: 0
   });
+  const [downloadsCountMap, setDownloadsCountMap] = useState<Record<number, number>>({});
 
   // メカニズム一覧を取得する関数
   const fetchMechanisms = async (page: number = 1) => {
@@ -31,6 +32,23 @@ const MechanismListPage: React.FC = () => {
         limit: response.limit,
         pages: response.pages
       });
+      
+      // ダウンロード回数を一括取得
+      if (response.items.length > 0) {
+        const mechanismIds = response.items.map(mechanism => mechanism.id);
+        try {
+          const downloadsResponse = await MechanismService.getMechanismsDownloads(mechanismIds);
+          const downloadsMap: Record<number, number> = {};
+          downloadsResponse.items.forEach((item: MechanismDownloadCount) => {
+            downloadsMap[item.mechanism_id] = item.total_downloads;
+          });
+          setDownloadsCountMap(downloadsMap);
+        } catch (downloadErr) {
+          console.error('ダウンロード回数の取得エラー:', downloadErr);
+          // ダウンロード回数の取得に失敗してもメカニズム一覧は表示する
+        }
+      }
+      
       setError(null);
     } catch (err) {
       setError('メカニズム一覧の取得に失敗しました。');
@@ -138,6 +156,9 @@ const MechanismListPage: React.FC = () => {
                               閲覧 {mechanism.views_count}回
                             </span>
                           )}
+                          <span className="text-sm text-gray-500">
+                            ダウンロード {downloadsCountMap[mechanism.id] || 0}回
+                          </span>
                         </div>
                         <span className="text-xs text-gray-400">
                           {new Date(mechanism.created_at).toLocaleDateString('ja-JP')}

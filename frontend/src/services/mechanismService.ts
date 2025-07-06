@@ -1,5 +1,5 @@
 import api from './api';
-import { PaginatedMechanismResponse, MechanismDetail, MechanismFormData, MechanismViewCount, MechanismViewsResponse } from '../types/mechanism';
+import { PaginatedMechanismResponse, MechanismDetail, MechanismFormData, MechanismViewCount, MechanismViewsResponse, MechanismDownloadCount, MechanismDownloadsResponse } from '../types/mechanism';
 
 /**
  * メカニズムサービス
@@ -144,6 +144,51 @@ export const MechanismService = {
       return response.data;
     } catch (error) {
       console.error(`複数メカニズムの閲覧回数取得に失敗しました`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * メカニズムダウンロード履歴を記録する
+   * @param mechanismId メカニズムID
+   * @returns 記録されたダウンロード履歴
+   */
+  async recordMechanismDownload(mechanismId: number): Promise<any> {
+    try {
+      const response = await api.post(`/api/mechanisms/${mechanismId}/download`);
+      return response.data;
+    } catch (error) {
+      console.error(`メカニズム(ID: ${mechanismId})のダウンロード履歴記録に失敗しました`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * メカニズムのダウンロード回数を取得する
+   * @param mechanismId メカニズムID
+   * @returns ダウンロード回数情報
+   */
+  async getMechanismDownloads(mechanismId: number): Promise<MechanismDownloadCount> {
+    try {
+      const response = await api.get(`/api/mechanisms/${mechanismId}/downloads`);
+      return response.data;
+    } catch (error) {
+      console.error(`メカニズム(ID: ${mechanismId})のダウンロード回数取得に失敗しました`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * 複数メカニズムのダウンロード回数を一括取得する
+   * @param mechanismIds メカニズムIDのリスト
+   * @returns ダウンロード回数情報のリスト
+   */
+  async getMechanismsDownloads(mechanismIds: number[]): Promise<MechanismDownloadsResponse> {
+    try {
+      const response = await api.post(`/api/mechanisms/downloads/batch`, mechanismIds);
+      return response.data;
+    } catch (error) {
+      console.error(`複数メカニズムのダウンロード回数取得に失敗しました`, error);
       throw error;
     }
   }
