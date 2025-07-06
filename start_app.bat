@@ -1,78 +1,78 @@
 @echo off
 chcp 932
 echo ========================================
-echo ƒƒJƒjƒYƒ€‹¤—Lƒvƒ‰ƒbƒgƒtƒH[ƒ€‹N“®’†...
+echo ãƒ¡ã‚«ãƒ‹ã‚ºãƒ å…±æœ‰ãƒ—ãƒ©ãƒƒãƒˆãƒ•ã‚©ãƒ¼ãƒ èµ·å‹•ä¸­...
 echo ========================================
 
-REM Œ»Ý‚ÌƒfƒBƒŒƒNƒgƒŠ‚ð•Û‘¶
+REM ç¾åœ¨ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä¿å­˜
 set ORIGINAL_DIR=%CD%
 
-@REM REM ƒoƒbƒNƒGƒ“ƒh‚Ì‰¼‘zŠÂ‹«‚ðŠm”FEì¬
+@REM REM ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã®ä»®æƒ³ç’°å¢ƒã‚’ç¢ºèªãƒ»ä½œæˆ
 @REM echo.
-@REM echo [0/4] ƒoƒbƒNƒGƒ“ƒh‚Ì‰¼‘zŠÂ‹«‚ðŠm”F’†...
+@REM echo [0/4] ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã®ä»®æƒ³ç’°å¢ƒã‚’ç¢ºèªä¸­...
 @REM cd /d "%~dp0"
 @REM if not exist ".venv" (
-@REM     echo ‰¼‘zŠÂ‹«‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB.venv ‚ðì¬‚µ‚Ü‚·...
+@REM     echo ä»®æƒ³ç’°å¢ƒãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚.venv ã‚’ä½œæˆã—ã¾ã™...
 @REM     uv venv .venv
 @REM     if %ERRORLEVEL% NEQ 0 (
-@REM         echo ƒGƒ‰[: ‰¼‘zŠÂ‹«‚Ìì¬‚ÉŽ¸”s‚µ‚Ü‚µ‚½B
+@REM         echo ã‚¨ãƒ©ãƒ¼: ä»®æƒ³ç’°å¢ƒã®ä½œæˆã«å¤±æ•—ã—ã¾ã—ãŸã€‚
 @REM         pause
 @REM         exit /b 1
 @REM     )
-@REM     echo ‰¼‘zŠÂ‹«‚Ìì¬‚ªŠ®—¹‚µ‚Ü‚µ‚½B
+@REM     echo ä»®æƒ³ç’°å¢ƒã®ä½œæˆãŒå®Œäº†ã—ã¾ã—ãŸã€‚
 @REM ) else (
-@REM     echo ‰¼‘zŠÂ‹«‚ÍŠù‚É‘¶Ý‚µ‚Ü‚·B
+@REM     echo ä»®æƒ³ç’°å¢ƒã¯æ—¢ã«å­˜åœ¨ã—ã¾ã™ã€‚
 @REM )
 
-@REM REM ƒoƒbƒNƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ðƒCƒ“ƒXƒg[ƒ‹i‰‰ñ‚Ì‚Ýj
+@REM REM ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ï¼ˆåˆå›žã®ã¿ï¼‰
 @REM echo.
-@REM echo [1/4] ƒoƒbƒNƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ðŠm”F’†...
+@REM echo [1/4] ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã‚’ç¢ºèªä¸­...
 @REM cd /d "%~dp0"
 @REM if not exist "requirements_installed.flag" (
-@REM     echo ƒoƒbƒNƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ðƒCƒ“ƒXƒg[ƒ‹’†...
-@REM     REM ‰¼‘zŠÂ‹«‚ð—LŒø‰»
+@REM     echo ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ä¸­...
+@REM     REM ä»®æƒ³ç’°å¢ƒã‚’æœ‰åŠ¹åŒ–
 @REM     call .venv\Scripts\activate
 @REM     uv pip install -r backend\requirements.txt
 @REM     if %ERRORLEVEL% EQU 0 (
 @REM         echo. > requirements_installed.flag
-@REM         echo ƒoƒbƒNƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ÌƒCƒ“ƒXƒg[ƒ‹‚ªŠ®—¹‚µ‚Ü‚µ‚½B
+@REM         echo ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ãŒå®Œäº†ã—ã¾ã—ãŸã€‚
 @REM     ) else (
-@REM         echo ƒGƒ‰[: ƒoƒbƒNƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ÌƒCƒ“ƒXƒg[ƒ‹‚ÉŽ¸”s‚µ‚Ü‚µ‚½B
+@REM         echo ã‚¨ãƒ©ãƒ¼: ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã«å¤±æ•—ã—ã¾ã—ãŸã€‚
 @REM         pause
 @REM         exit /b 1
 @REM     )
 @REM ) else (
-@REM     echo ƒoƒbƒNƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ÍŠù‚ÉƒCƒ“ƒXƒg[ƒ‹Ï‚Ý‚Å‚·B
+@REM     echo ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã¯æ—¢ã«ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«æ¸ˆã¿ã§ã™ã€‚
 @REM )
 
-@REM REM ƒtƒƒ“ƒgƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ðƒCƒ“ƒXƒg[ƒ‹i‰‰ñ‚Ì‚Ýj
+@REM REM ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ï¼ˆåˆå›žã®ã¿ï¼‰
 @REM echo.
-@REM echo [2/4] ƒtƒƒ“ƒgƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ðŠm”F’†...
+@REM echo [2/4] ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã‚’ç¢ºèªä¸­...
 @REM cd /d "%~dp0\frontend"
 @REM if not exist "node_modules" (
-@REM     echo ƒtƒƒ“ƒgƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ðƒCƒ“ƒXƒg[ƒ‹’†...
+@REM     echo ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ä¸­...
 @REM     npm install
 @REM     if %ERRORLEVEL% NEQ 0 (
-@REM         echo ƒGƒ‰[: ƒtƒƒ“ƒgƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ÌƒCƒ“ƒXƒg[ƒ‹‚ÉŽ¸”s‚µ‚Ü‚µ‚½B
+@REM         echo ã‚¨ãƒ©ãƒ¼: ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã«å¤±æ•—ã—ã¾ã—ãŸã€‚
 @REM         pause
 @REM         exit /b 1
 @REM     )
-@REM     echo ƒtƒƒ“ƒgƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ÌƒCƒ“ƒXƒg[ƒ‹‚ªŠ®—¹‚µ‚Ü‚µ‚½B
+@REM     echo ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ãŒå®Œäº†ã—ã¾ã—ãŸã€‚
 @REM ) else (
-@REM     echo ƒtƒƒ“ƒgƒGƒ“ƒh‚ÌˆË‘¶ŠÖŒW‚ÍŠù‚ÉƒCƒ“ƒXƒg[ƒ‹Ï‚Ý‚Å‚·B
+@REM     echo ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰ã®ä¾å­˜é–¢ä¿‚ã¯æ—¢ã«ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«æ¸ˆã¿ã§ã™ã€‚
 @REM )
 
-@REM REM ƒvƒƒWƒFƒNƒgƒ‹[ƒg‚É–ß‚é
+@REM REM ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆãƒ«ãƒ¼ãƒˆã«æˆ»ã‚‹
 @REM cd /d "%~dp0"
 
-@REM REM ƒf[ƒ^ƒx[ƒXƒ}ƒCƒOƒŒ[ƒVƒ‡ƒ“ŽÀs
+@REM REM ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ãƒžã‚¤ã‚°ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³å®Ÿè¡Œ
 @REM echo.
-@REM echo [3/4] ƒf[ƒ^ƒx[ƒXƒ}ƒCƒOƒŒ[ƒVƒ‡ƒ“‚ðŽÀs’†...
+@REM echo [3/4] ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ãƒžã‚¤ã‚°ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å®Ÿè¡Œä¸­...
 @REM ".venv\Scripts\alembic.exe" upgrade head
 @REM if %ERRORLEVEL% NEQ 0 (
-@REM     echo Œx: ƒf[ƒ^ƒx[ƒXƒ}ƒCƒOƒŒ[ƒVƒ‡ƒ“‚ÅƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B
-@REM     echo ƒf[ƒ^ƒx[ƒX‚ª³‚µ‚­Ý’è‚³‚ê‚Ä‚¢‚é‚©Šm”F‚µ‚Ä‚­‚¾‚³‚¢B
-@REM     echo ‘±s‚µ‚Ü‚·‚©H (Y/N)
+@REM     echo è­¦å‘Š: ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ãƒžã‚¤ã‚°ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã§ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚
+@REM     echo ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ãŒæ­£ã—ãè¨­å®šã•ã‚Œã¦ã„ã‚‹ã‹ç¢ºèªã—ã¦ãã ã•ã„ã€‚
+@REM     echo ç¶šè¡Œã—ã¾ã™ã‹ï¼Ÿ (Y/N)
 @REM     set /p CONTINUE=
 @REM     if /i not "%CONTINUE%"=="Y" (
 @REM         pause
@@ -80,35 +80,35 @@ set ORIGINAL_DIR=%CD%
 @REM     )
 @REM )
 
-REM ƒoƒbƒNƒGƒ“ƒhƒT[ƒo[‚ð‹N“®iƒoƒbƒNƒOƒ‰ƒEƒ“ƒhj
+REM ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã‚µãƒ¼ãƒãƒ¼ã‚’èµ·å‹•ï¼ˆãƒãƒƒã‚¯ã‚°ãƒ©ã‚¦ãƒ³ãƒ‰ï¼‰
 echo.
-echo [4/4] ƒT[ƒo[‚ð‹N“®’†...
-echo ƒoƒbƒNƒGƒ“ƒhƒT[ƒo[‚ð‹N“®‚µ‚Ä‚¢‚Ü‚·...
+echo [4/4] ã‚µãƒ¼ãƒãƒ¼ã‚’èµ·å‹•ä¸­...
+echo ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã‚µãƒ¼ãƒãƒ¼ã‚’èµ·å‹•ã—ã¦ã„ã¾ã™...
 call .venv\Scripts\activate
 start "Backend Server" cmd /c "uvicorn backend.app.main:app --reload"
 
-REM ­‚µ‘Ò‹@‚µ‚Ä‚©‚çƒtƒƒ“ƒgƒGƒ“ƒh‚ð‹N“®
+REM å°‘ã—å¾…æ©Ÿã—ã¦ã‹ã‚‰ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰ã‚’èµ·å‹•
 timeout /t 3 /nobreak >nul
 
-echo ƒtƒƒ“ƒgƒGƒ“ƒhƒT[ƒo[‚ð‹N“®‚µ‚Ä‚¢‚Ü‚·...
+echo ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰ã‚µãƒ¼ãƒãƒ¼ã‚’èµ·å‹•ã—ã¦ã„ã¾ã™...
 cd /d "%~dp0\frontend"
 start "Frontend Server" cmd /c "npm start"
 
-REM Œ³‚ÌƒfƒBƒŒƒNƒgƒŠ‚É–ß‚é
+REM å…ƒã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«æˆ»ã‚‹
 cd /d "%ORIGINAL_DIR%"
 
 echo.
 echo ========================================
-echo ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ª‹N“®‚µ‚Ü‚µ‚½I
+echo ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ãŒèµ·å‹•ã—ã¾ã—ãŸï¼
 echo ========================================
 echo.
-echo ƒAƒNƒZƒXæ:
-echo - ƒtƒƒ“ƒgƒGƒ“ƒh: http://localhost:3000
-echo - ƒoƒbƒNƒGƒ“ƒhAPI: http://localhost:8000
-echo - API ƒhƒLƒ…ƒƒ“ƒg: http://localhost:8000/docs
+echo ã‚¢ã‚¯ã‚»ã‚¹å…ˆ:
+echo - ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰: http://localhost:3000
+echo - ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰API: http://localhost:8000
+echo - API ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ: http://localhost:8000/docs
 echo.
-echo ƒT[ƒo[‚ð’âŽ~‚·‚é‚É‚ÍAŠeƒ^[ƒ~ƒiƒ‹ƒEƒBƒ“ƒhƒE‚Å Ctrl+C ‚ð‰Ÿ‚µ‚Ä‚­‚¾‚³‚¢B
+echo ã‚µãƒ¼ãƒãƒ¼ã‚’åœæ­¢ã™ã‚‹ã«ã¯ã€å„ã‚¿ãƒ¼ãƒŸãƒŠãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§ Ctrl+C ã‚’æŠ¼ã—ã¦ãã ã•ã„ã€‚
 echo.
-echo ƒuƒ‰ƒEƒU‚ªŽ©“®‚ÅŠJ‚©‚È‚¢ê‡‚ÍAŽè“®‚Å http://localhost:3000 ‚ÉƒAƒNƒZƒX‚µ‚Ä‚­‚¾‚³‚¢B
+echo ãƒ–ãƒ©ã‚¦ã‚¶ãŒè‡ªå‹•ã§é–‹ã‹ãªã„å ´åˆã¯ã€æ‰‹å‹•ã§ http://localhost:3000 ã«ã‚¢ã‚¯ã‚»ã‚¹ã—ã¦ãã ã•ã„ã€‚
 echo.
 pause
