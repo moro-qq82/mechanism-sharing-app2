@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func
-from typing import Optional, Dict, Any, List
-from datetime import datetime
+from sqlalchemy import func, desc
+from typing import Optional, Dict, Any, List, Tuple
+from datetime import datetime, timedelta
 
 from backend.app.models.mechanism_view import MechanismView
 from backend.app.schemas.mechanism_view import MechanismViewCreate
@@ -12,9 +12,9 @@ class MechanismViewService:
     """
 
     @staticmethod
-    def create_mechanism_view(db: Session, mechanism_id: int, user_id: Optional[int] = None) -> MechanismView:
+    def create_mechanism_view(db: Session, mechanism_id: int, user_id: Optional[int] = None) -> Tuple[MechanismView, bool]:
         """
-        メカニズム閲覧履歴を作成する
+        メカニズム閲覧履歴を作成する（5分間の重複防止機能付き）
 
         Args:
             db: データベースセッション
@@ -22,9 +22,23 @@ class MechanismViewService:
             user_id: ユーザーID（ログインしていない場合はNone）
 
         Returns:
-            作成されたメカニズム閲覧履歴オブジェクト
+            (MechanismView, is_new): 閲覧履歴オブジェクトと新規作成されたかのフラグ
         """
-        # メカニズム閲覧履歴を作成
+        # 5分前の時刻を計算
+        five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
+        
+        # 5分以内の同じユーザー・メカニズムの閲覧履歴をチェック
+        recent_view = db.query(MechanismView).filter(
+            MechanismView.mechanism_id == mechanism_id,
+            MechanismView.user_id == user_id,
+            MechanismView.viewed_at >= five_minutes_ago
+        ).order_by(desc(MechanismView.viewed_at)).first()
+        
+        # 5分以内に閲覧履歴がある場合は既存のレコードを返す
+        if recent_view:
+            return recent_view, False
+        
+        # 5分以内に閲覧履歴がない場合は新規作成
         db_mechanism_view = MechanismView(
             mechanism_id=mechanism_id,
             user_id=user_id
@@ -35,7 +49,7 @@ class MechanismViewService:
         db.commit()
         db.refresh(db_mechanism_view)
         
-        return db_mechanism_view
+        return db_mechanism_view, True
 
     @staticmethod
     def get_mechanism_views_count(db: Session, mechanism_id: int) -> int:

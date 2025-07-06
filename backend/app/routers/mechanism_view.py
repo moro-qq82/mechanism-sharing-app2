@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -11,22 +11,24 @@ from backend.app.services.mechanism import MechanismService
 
 router = APIRouter()
 
-@router.post("/{mechanism_id}/view", response_model=MechanismViewResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/{mechanism_id}/view", response_model=MechanismViewResponse)
 def record_mechanism_view(
     mechanism_id: int,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
-    メカニズム閲覧履歴を記録するエンドポイント
+    メカニズム閲覧履歴を記録するエンドポイント（5分間重複防止機能付き）
     
     Args:
         mechanism_id: メカニズムID
+        response: レスポンスオブジェクト（ステータスコード設定用）
         db: データベースセッション
         current_user: 現在のユーザー（ログインしていない場合はNone）
         
     Returns:
-        作成されたメカニズム閲覧履歴
+        メカニズム閲覧履歴（新規作成または既存のレコード）
         
     Raises:
         HTTPException: メカニズムが見つからない場合
@@ -39,8 +41,14 @@ def record_mechanism_view(
     # ユーザーIDを取得（ログインしていない場合はNone）
     user_id = current_user.id if current_user else None
     
-    # 閲覧履歴を記録
-    mechanism_view = MechanismViewService.create_mechanism_view(db, mechanism_id, user_id)
+    # 閲覧履歴を記録（5分間重複防止機能付き）
+    mechanism_view, is_new = MechanismViewService.create_mechanism_view(db, mechanism_id, user_id)
+    
+    # ステータスコードを設定
+    if is_new:
+        response.status_code = status.HTTP_201_CREATED  # 新規作成
+    else:
+        response.status_code = status.HTTP_200_OK  # 既存レコード
     
     return mechanism_view
 

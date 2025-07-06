@@ -42,29 +42,23 @@
 
 
 ### In process
-25. メカニズムごとにメカニズム詳細画面を開いた回数を記録できるようにする(個人ごと、総数)
-   - 総閲覧回数が2ずつ増える
 
 ### completed
+25. メカニズムごとにメカニズム詳細画面を開いた回数を記録できるようにする(個人ごと、総数)
+   - 完了日時: 2025-07-06
+   - 5分間重複防止機能を実装（同じユーザーが5分以内に同じメカニズムを再度開いても閲覧回数が増加しない仕組み）
+   - 該当ファイル:
+     - backend/app/services/mechanism_view.py - 重複防止ロジックを追加
+     - backend/app/routers/mechanism_view.py - APIレスポンスのステータスコード動的変更
+     - backend/tests/test_mechanism_view.py - 新テストケース追加（test_duplicate_view_prevention, test_view_prevention_time_limit）
+     - backend/tests/test_mechanism_view_api.py - APIテスト更新
+   - バックエンド: MechanismViewService.create_mechanism_view メソッドの戻り値を(MechanismView, bool)に変更
+   - API: 初回アクセス時は201 Created、5分以内の再アクセス時は200 OK を返却
+   - テスト: 7個のユニットテストと2個のAPIテストが全て合格
+   - 総閲覧回数が2ずつ増える問題を解決
 26. backendのtest_auth.pyが単独テストではpassするが、backend全体テストでは一部failする
    - 完了日時: 2025-07-06
    - WSL環境側では問題なし
-25. メカニズムごとにメカニズム詳細画面を開いた回数を記録できるようにする(個人ごと、総数)
-   - 完了日時: 2025-05-10
-   - 該当ファイル:
-     - backend/app/models/mechanism_view.py
-     - backend/app/schemas/mechanism_view.py
-     - backend/app/services/mechanism_view.py
-     - backend/app/routers/mechanism_view.py
-     - backend/app/routers/mechanism.py
-     - migrations/versions/add_mechanism_view_model.py
-     - frontend/src/types/mechanism.ts
-     - frontend/src/services/mechanismService.ts
-     - frontend/src/pages/MechanismDetailPage.tsx
-     - frontend/src/pages/MechanismListPage.tsx
-   - メカニズム詳細画面を開いた回数を記録する機能を実装
-   - 個人ごとの閲覧回数と総閲覧回数を記録・表示
-   - メカニズム一覧画面でも閲覧回数を表示
 24. 投稿画面で投稿するボタンを押したときにスクロールしないとエラーが見えないことがある。投稿するボタンの下にエラーメッセージを表示したい（必須項目が記入されていません）
    - 完了日時: 2025-05-10
    - 該当ファイル:

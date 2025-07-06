@@ -32,11 +32,17 @@ def test_record_mechanism_view_anonymous(client, test_mechanism):
         # APIリクエスト
         response = client.post(f"/api/mechanisms/{test_mechanism.id}/view")
         
-        # レスポンスの検証
+        # レスポンスの検証（初回アクセスなので201 Created）
         assert response.status_code == 201
         data = response.json()
         assert data["mechanism_id"] == test_mechanism.id
         assert data["user_id"] is None  # 匿名ユーザー
+        
+        # 5分以内の再アクセス（重複防止により200 OK）
+        response2 = client.post(f"/api/mechanisms/{test_mechanism.id}/view")
+        assert response2.status_code == 200  # 既存レコード
+        data2 = response2.json()
+        assert data2["id"] == data["id"]  # 同じレコードが返される
     finally:
         if original_override:
             app.dependency_overrides[get_current_user_optional] = original_override
@@ -58,7 +64,7 @@ def test_record_mechanism_view_logged_in(client, test_mechanism, test_user, db_s
         # APIリクエスト
         response = client.post(f"/api/mechanisms/{test_mechanism.id}/view")
         
-        # レスポンスの検証
+        # レスポンスの検証（初回アクセスなので201 Created）
         assert response.status_code == 201
         data = response.json()
         assert data["mechanism_id"] == test_mechanism.id
@@ -67,6 +73,12 @@ def test_record_mechanism_view_logged_in(client, test_mechanism, test_user, db_s
         # DBで確認
         view_in_db = db_session.query(MechanismView).filter_by(mechanism_id=test_mechanism.id, user_id=test_user.id).first()
         assert view_in_db is not None
+        
+        # 5分以内の再アクセス（重複防止により200 OK）
+        response2 = client.post(f"/api/mechanisms/{test_mechanism.id}/view")
+        assert response2.status_code == 200  # 既存レコード
+        data2 = response2.json()
+        assert data2["id"] == data["id"]  # 同じレコードが返される
     finally:
         if original_override:
             app.dependency_overrides[get_current_user_optional] = original_override
