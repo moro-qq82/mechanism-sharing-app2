@@ -1,15 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
 from pathlib import Path
 
 from backend.app.database import get_db
-from backend.app.middlewares.auth import get_current_user
+from backend.app.middlewares.auth import get_current_user, get_current_user_optional
 from backend.app.models.user import User
 from backend.app.schemas.mechanism import MechanismCreate, MechanismListResponse, MechanismDetailResponse, PaginatedMechanismResponse
 from backend.app.services.mechanism import MechanismService
 from backend.app.services.mechanism_view import MechanismViewService
+from backend.app.services.mechanism_download import MechanismDownloadService
 
 router = APIRouter()
 
@@ -206,3 +208,57 @@ async def create_mechanism(
         "created_at": mechanism.created_at,
         "updated_at": mechanism.updated_at
     }
+
+@router.get("/{mechanism_id}/download")
+async def download_mechanism_file(
+    mechanism_id: int, 
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """
+    メカニズムファイルをダウンロードするエンドポイント
+    
+    Args:
+        mechanism_id: メカニズムID
+        db: データベースセッション
+        current_user: 現在のユーザー（オプショナル）
+        
+    Returns:
+        ファイルレスポンス
+        
+    Raises:
+        HTTPException: メカニズムが見つからない場合
+    """
+    # メカニズムを取得
+    mechanism = MechanismService.get_mechanism_by_id(db, mechanism_id)
+    if not mechanism:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="メカニズムが見つかりません"
+        )
+    
+    # ダウンロード履歴を記録
+    try:
+        user_id = current_user.id if current_user else None
+        MechanismDownloadService.create_mechanism_download(db, mechanism_id, user_id)
+    except Exception as e:
+        # ダウンロード履歴の記録に失敗してもファイルダウンロードは継続
+        print(f"ダウンロード履歴記録エラー: {e}")
+    
+    # ファイルパスを構築
+    file_path = Path(mechanism.file_path)
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="ファイルが見つかりません"
+        )
+    
+    # ファイル名を取得
+    filename = file_path.name
+    
+    # Content-Dispositionヘッダーを設定してファイルダウンロードを強制
+    return FileResponse(
+        path=str(file_path),
+        filename=filename,
+        media_type='application/octet-stream'
+    )

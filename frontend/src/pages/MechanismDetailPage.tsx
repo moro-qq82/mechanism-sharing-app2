@@ -88,15 +88,24 @@ const MechanismDetailPage: React.FC = () => {
 
   // ダウンロードボタンのクリックハンドラ
   const handleDownload = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault(); // デフォルトのaタグ動作を防ぐ
+    
     try {
-      // ダウンロード履歴を記録
-      await MechanismService.recordMechanismDownload(mechanismId);
-      // ダウンロード回数を更新
-      fetchMechanismDownloads();
+      // 専用のダウンロードエンドポイントを使用（履歴記録はサーバー側で実行）
+      const downloadUrl = `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000'}/api/mechanisms/${mechanismId}/download`;
+      
+      // 新しいwindowでダウンロードURLを開く
+      window.open(downloadUrl, '_blank');
+      
+      // ダウンロード後に回数を更新（少し遅延を入れる）
+      setTimeout(() => {
+        fetchMechanismDownloads();
+      }, 1000);
+      
     } catch (err) {
-      console.error(`ダウンロード履歴の記録エラー:`, err);
+      console.error(`ダウンロードエラー:`, err);
+      alert('ファイルのダウンロードに失敗しました。');
     }
-    // aタグのデフォルト動作（ダウンロード）は継続される
   };
 
   // いいね処理
@@ -258,8 +267,7 @@ const MechanismDetailPage: React.FC = () => {
                           ファイルを表示
                         </a>
                         <a
-                          href={getFileUrl(mechanism.file_path)}
-                          download
+                          href="#"
                           onClick={handleDownload}
                           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                         >

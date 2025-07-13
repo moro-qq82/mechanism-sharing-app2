@@ -70,6 +70,12 @@ describe('MechanismDetailPage', () => {
     // getMechanismViewsのモック実装
     (MechanismService.getMechanismViews as jest.Mock).mockResolvedValue({ mechanism_id: 1, total_views: 10, user_views: 3 });
     
+    // recordMechanismDownloadのモック実装
+    (MechanismService.recordMechanismDownload as jest.Mock).mockResolvedValue({ mechanism_id: 1, user_id: 1, download_count: 1 });
+    
+    // getMechanismDownloadsのモック実装
+    (MechanismService.getMechanismDownloads as jest.Mock).mockResolvedValue({ mechanism_id: 1, total_downloads: 5, user_downloads: 2 });
+    
     // デフォルトの認証状態をモック（未認証）
     (useAuth as jest.Mock).mockReturnValue({
       isAuthenticated: false,
