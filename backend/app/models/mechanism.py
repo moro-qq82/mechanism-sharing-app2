@@ -28,6 +28,6 @@ class Mechanism(Base):
     # リレーションシップ
     user = relationship("User", back_populates="mechanisms")
     categories = relationship("Category", secondary=mechanism_category, back_populates="mechanisms")
-    likes = relationship("Like", back_populates="mechanism")
-    views = relationship("MechanismView", back_populates="mechanism")
-    downloads = relationship("MechanismDownload", back_populates="mechanism")
+    likes = relationship("Like", back_populates="mechanism", cascade="all, delete-orphan")
+    views = relationship("MechanismView", back_populates="mechanism", cascade="all, delete-orphan")
+    downloads = relationship("MechanismDownload", back_populates="mechanism", cascade="all, delete-orphan")

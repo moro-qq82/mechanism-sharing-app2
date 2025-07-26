@@ -6,6 +6,7 @@ import { MechanismDetail, MechanismFormData, PaginatedMechanismResponse, Mechani
 jest.mock('../../services/api', () => ({
   get: jest.fn(),
   post: jest.fn(),
+  put: jest.fn(),
   delete: jest.fn(),
 }));
 
@@ -304,6 +305,31 @@ describe('MechanismService', () => {
       // Act & Assert
       await expect(MechanismService.getMechanismsViews([1, 2])).rejects.toThrow(error);
       expect(api.post).toHaveBeenCalledWith('/api/mechanisms/views/batch', [1, 2]);
+    });
+  });
+
+  describe('deleteMechanism', () => {
+    it('正常に削除リクエストを送信すること', async () => {
+      // Arrange
+      const mechanismId = 1;
+      (api.delete as jest.Mock).mockResolvedValueOnce({});
+      
+      // Act
+      await MechanismService.deleteMechanism(mechanismId);
+      
+      // Assert
+      expect(api.delete).toHaveBeenCalledWith('/api/mechanisms/1');
+    });
+
+    it('エラー時に例外をスローすること', async () => {
+      // Arrange
+      const mechanismId = 1;
+      const error = new Error('Delete failed');
+      (api.delete as jest.Mock).mockRejectedValueOnce(error);
+      
+      // Act & Assert
+      await expect(MechanismService.deleteMechanism(mechanismId)).rejects.toThrow(error);
+      expect(api.delete).toHaveBeenCalledWith('/api/mechanisms/1');
     });
   });
 });

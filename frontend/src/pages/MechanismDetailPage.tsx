@@ -24,6 +24,8 @@ const MechanismDetailPage: React.FC = () => {
   const [likesCount, setLikesCount] = useState<number>(0);
   const [viewsCount, setViewsCount] = useState<{ total: number; user?: number }>({ total: 0 });
   const [downloadsCount, setDownloadsCount] = useState<{ total: number; user?: number }>({ total: 0 });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   // React.StrictModeによる重複実行を防ぐためのref
   const viewRecordedRef = useRef<boolean>(false);
@@ -112,6 +114,32 @@ const MechanismDetailPage: React.FC = () => {
   // 編集ボタンのクリックハンドラ
   const handleEdit = () => {
     navigate(`/mechanisms/${mechanismId}/edit`);
+  };
+
+  // 削除ボタンのクリックハンドラ
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  // 削除確認ダイアログのキャンセル
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+  };
+
+  // 削除の実行
+  const handleDeleteConfirm = async () => {
+    try {
+      setIsDeleting(true);
+      await MechanismService.deleteMechanism(mechanismId);
+      // 削除成功後、一覧ページにリダイレクト
+      navigate('/');
+    } catch (err) {
+      console.error('メカニズムの削除に失敗しました', err);
+      alert('メカニズムの削除に失敗しました。削除権限がない可能性があります。');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   // 現在のユーザーが投稿者かどうかをチェック
@@ -220,12 +248,20 @@ const MechanismDetailPage: React.FC = () => {
                     信頼性: {getReliabilityLabel(mechanism.reliability)}
                   </span>
                   {isOwner && (
-                    <button 
-                      onClick={handleEdit}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      編集
-                    </button>
+                    <>
+                      <button 
+                        onClick={handleEdit}
+                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      >
+                        編集
+                      </button>
+                      <button 
+                        onClick={handleDelete}
+                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      >
+                        削除
+                      </button>
+                    </>
                   )}
                   <button 
                     onClick={handleLike}
@@ -337,6 +373,38 @@ const MechanismDetailPage: React.FC = () => {
           </div>
         </div>
       </main>
+      
+      {/* 削除確認ダイアログ */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm mx-auto">
+            <div className="mb-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">メカニズムの削除</h3>
+              <p className="text-sm text-gray-500">
+                このメカニズムを削除しますか？この操作は取り消せません。
+              </p>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                type="button"
+                onClick={handleDeleteCancel}
+                disabled={isDeleting}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                キャンセル
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+              >
+                {isDeleting ? '削除中...' : '削除する'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

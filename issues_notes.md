@@ -38,8 +38,8 @@
 31. タイトルバーを shadcn/ui で置き換えて、背景に Matter.js で粒子流し込みを行う
 32. [bug]5分以上経ってからもう一度記事を見ても閲覧回数が増えない
 33. 「ファイルを表示」ボタンと「ダウンロード」ボタンが挙動が同じでブラウザで表示するのみになっているので、「ダウンロード」ボタンは押したらダウンロードが始まるようにしたい
-34. 自分が投稿したメカニズムは編集できるようにする
-35. 自分が投稿したメカニズムは削除できるようにする
+34. 自分が投稿したメカニズムは編集できるようにする ✅ 完了
+35. 自分が投稿したメカニズムは削除できるようにする ✅ 完了
 36. Administratorはメカニズムを削除できるようにする
 37. docker-compose.ymlファイルで立ち上げられるようにする
 
@@ -52,6 +52,24 @@
 ### In process
 
 ### completed
+35. 自分が投稿したメカニズムは削除できるようにする
+   - 完了日時: 2025-07-26
+   - 該当ファイル:
+     - backend/app/services/mechanism.py - delete_mechanism メソッド追加（投稿者本人のみ削除可能）
+     - backend/app/routers/mechanism.py - DELETE /api/mechanisms/{id} エンドポイント追加
+     - backend/tests/test_mechanism.py - 削除機能のテスト追加（3つのテストケース）
+     - frontend/src/services/mechanismService.ts - deleteMechanism メソッド追加
+     - frontend/src/pages/MechanismDetailPage.tsx - 投稿者のみ表示される削除ボタンと削除確認ダイアログ追加
+     - frontend/src/__tests__/pages/MechanismDetailPage.test.tsx - 削除ボタンとダイアログのテスト追加
+     - frontend/src/__tests__/services/mechanismService.test.ts - 削除機能のサービステスト追加
+   - 機能: 
+     - 投稿者本人のみメカニズム削除可能な権限制御
+     - 削除確認ダイアログによる誤操作防止
+     - 詳細画面に投稿者のみ表示される削除ボタン
+     - 削除成功後は一覧ページにリダイレクト
+     - 適切なエラーハンドリング
+   - セキュリティ: 削除権限は投稿者本人のみ、サーバー側で厳密にチェック
+
 34. 自分が投稿したメカニズムは編集できるようにする
    - 完了日時: 2025-07-26
    - 該当ファイル:

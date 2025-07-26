@@ -227,3 +227,35 @@ class MechanismService:
         db.refresh(mechanism)
         
         return mechanism
+
+    @staticmethod
+    def delete_mechanism(
+        db: Session,
+        mechanism_id: int,
+        current_user_id: int
+    ) -> bool:
+        """
+        メカニズムを削除する
+
+        Args:
+            db: データベースセッション
+            mechanism_id: 削除するメカニズムのID
+            current_user_id: 現在のユーザーID
+
+        Returns:
+            削除成功の場合True、権限がない場合やメカニズムが存在しない場合はFalse
+        """
+        # メカニズムを取得
+        mechanism = db.query(Mechanism).filter(Mechanism.id == mechanism_id).first()
+        if not mechanism:
+            return False
+        
+        # 投稿者本人かどうかを確認
+        if mechanism.user_id != current_user_id:
+            return False
+        
+        # メカニズムを削除（関連データも自動削除される）
+        db.delete(mechanism)
+        db.commit()
+        
+        return True

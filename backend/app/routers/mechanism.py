@@ -339,3 +339,47 @@ def update_mechanism(
         "created_at": updated_mechanism.created_at,
         "updated_at": updated_mechanism.updated_at
     }
+
+@router.delete("/{mechanism_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_mechanism(
+    mechanism_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    メカニズムを削除するエンドポイント
+    
+    Args:
+        mechanism_id: 削除するメカニズムのID
+        db: データベースセッション
+        current_user: 現在のユーザー
+        
+    Returns:
+        削除成功の場合は204 No Content
+        
+    Raises:
+        HTTPException: メカニズムが見つからない場合、または削除権限がない場合
+    """
+    # メカニズムを削除
+    success = MechanismService.delete_mechanism(
+        db=db,
+        mechanism_id=mechanism_id,
+        current_user_id=current_user.id
+    )
+    
+    if not success:
+        # メカニズムが存在しないか、削除権限がない場合
+        mechanism = MechanismService.get_mechanism_by_id(db, mechanism_id)
+        if not mechanism:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="メカニズムが見つかりません"
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="このメカニズムを削除する権限がありません"
+            )
+    
+    # 削除成功の場合は204 No Contentを返す
+    return

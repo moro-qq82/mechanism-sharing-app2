@@ -394,5 +394,97 @@ describe('MechanismDetailPage', () => {
     
     // 編集ボタンが表示されないことを確認
     expect(screen.queryByText('編集')).not.toBeInTheDocument();
+    
+    // 削除ボタンが表示されないことを確認
+    expect(screen.queryByText('削除')).not.toBeInTheDocument();
+  });
+
+  test('投稿者本人の場合は削除ボタンが表示されること', async () => {
+    // 投稿者本人でログインした状態をモック
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 1, email: 'test@example.com' }, // mockMechanismDetailの投稿者と同じID
+      isAuthenticated: true,
+      loading: false,
+      error: null,
+      login: jest.fn(),
+      register: jest.fn(),
+      logout: jest.fn()
+    });
+    
+    renderWithRouter();
+    
+    // データが読み込まれるのを待つ
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+    
+    // 削除ボタンが表示されることを確認
+    expect(screen.getByText('削除')).toBeInTheDocument();
+  });
+
+  test('投稿者以外の場合は削除ボタンが表示されないこと', async () => {
+    // 別のユーザーでログインした状態をモック
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 2, email: 'other@example.com' }, // 異なるユーザーID
+      isAuthenticated: true,
+      loading: false,
+      error: null,
+      login: jest.fn(),
+      register: jest.fn(),
+      logout: jest.fn()
+    });
+    
+    renderWithRouter();
+    
+    // データが読み込まれるのを待つ
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+    
+    // 削除ボタンが表示されないことを確認
+    expect(screen.queryByText('削除')).not.toBeInTheDocument();
+  });
+
+  test('削除確認ダイアログの表示と操作', async () => {
+    // 投稿者本人でログインした状態をモック
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 1, email: 'test@example.com' },
+      isAuthenticated: true,
+      loading: false,
+      error: null,
+      login: jest.fn(),
+      register: jest.fn(),
+      logout: jest.fn()
+    });
+    
+    renderWithRouter();
+    
+    // データが読み込まれるのを待つ
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+    
+    // 削除ボタンをクリック
+    const deleteButton = screen.getByText('削除');
+    fireEvent.click(deleteButton);
+    
+    // 削除確認ダイアログが表示されることを確認
+    await waitFor(() => {
+      expect(screen.getByText('メカニズムの削除')).toBeInTheDocument();
+      expect(screen.getByText('このメカニズムを削除しますか？この操作は取り消せません。')).toBeInTheDocument();
+    });
+    
+    // キャンセルボタンが存在することを確認
+    expect(screen.getByText('キャンセル')).toBeInTheDocument();
+    expect(screen.getByText('削除する')).toBeInTheDocument();
+    
+    // キャンセルボタンをクリック
+    const cancelButton = screen.getByText('キャンセル');
+    fireEvent.click(cancelButton);
+    
+    // ダイアログが閉じることを確認
+    await waitFor(() => {
+      expect(screen.queryByText('メカニズムの削除')).not.toBeInTheDocument();
+    });
   });
 });

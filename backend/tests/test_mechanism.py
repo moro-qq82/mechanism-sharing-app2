@@ -383,3 +383,59 @@ def test_update_mechanism_categories_only(db_session: Session, test_mechanism: M
     assert updated_mechanism.title == original_title  # 変更されていない
     assert len(updated_mechanism.categories) == 1
     assert updated_mechanism.categories[0].name == "新カテゴリー"
+
+def test_delete_mechanism_success(db_session: Session, test_mechanism: Mechanism):
+    """メカニズム削除成功のテスト（投稿者本人）"""
+    mechanism_id = test_mechanism.id
+    user_id = test_mechanism.user_id
+    
+    # メカニズムを削除（投稿者本人）
+    success = MechanismService.delete_mechanism(
+        db=db_session,
+        mechanism_id=mechanism_id,
+        current_user_id=user_id
+    )
+    
+    # 削除が成功することを確認
+    assert success is True
+    
+    # データベースから削除されていることを確認
+    deleted_mechanism = db_session.query(Mechanism).filter(Mechanism.id == mechanism_id).first()
+    assert deleted_mechanism is None
+
+def test_delete_mechanism_not_owner(db_session: Session, test_mechanism: Mechanism):
+    """メカニズム削除失敗のテスト（投稿者以外）"""
+    # 別のユーザーを作成
+    from backend.app.models.user import User
+    another_user = User(
+        email=f"another_{time.time()}@example.com",
+        password_hash="hashedpassword"
+    )
+    db_session.add(another_user)
+    db_session.commit()
+    db_session.refresh(another_user)
+    
+    # 投稿者以外のユーザーで削除を試行
+    success = MechanismService.delete_mechanism(
+        db=db_session,
+        mechanism_id=test_mechanism.id,
+        current_user_id=another_user.id
+    )
+    
+    # 削除は失敗すべき
+    assert success is False
+    
+    # メカニズムがまだ存在することを確認
+    mechanism = db_session.query(Mechanism).filter(Mechanism.id == test_mechanism.id).first()
+    assert mechanism is not None
+
+def test_delete_mechanism_not_found(db_session: Session, test_user):
+    """存在しないメカニズムの削除テスト"""
+    success = MechanismService.delete_mechanism(
+        db=db_session,
+        mechanism_id=999,  # 存在しないID
+        current_user_id=test_user.id
+    )
+    
+    # 削除は失敗すべき
+    assert success is False

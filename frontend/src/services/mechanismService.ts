@@ -92,6 +92,20 @@ export const MechanismService = {
   },
 
   /**
+   * メカニズムを削除する
+   * @param id メカニズムID
+   * @returns 削除の成功/失敗
+   */
+  async deleteMechanism(id: number): Promise<void> {
+    try {
+      await api.delete(`/api/mechanisms/${id}`);
+    } catch (error) {
+      console.error(`メカニズム(ID: ${id})の削除に失敗しました`, error);
+      throw error;
+    }
+  },
+
+  /**
    * メカニズムにいいねを付ける
    * @param mechanismId メカニズムID
    * @returns いいね情報
