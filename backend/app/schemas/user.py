@@ -11,6 +11,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: str
+    is_admin: bool
     created_at: datetime
 
     class Config:

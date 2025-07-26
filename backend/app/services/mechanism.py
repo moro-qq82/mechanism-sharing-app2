@@ -232,7 +232,8 @@ class MechanismService:
     def delete_mechanism(
         db: Session,
         mechanism_id: int,
-        current_user_id: int
+        current_user_id: int,
+        is_admin: bool = False
     ) -> bool:
         """
         メカニズムを削除する
@@ -241,6 +242,7 @@ class MechanismService:
             db: データベースセッション
             mechanism_id: 削除するメカニズムのID
             current_user_id: 現在のユーザーID
+            is_admin: 現在のユーザーがadminかどうか
 
         Returns:
             削除成功の場合True、権限がない場合やメカニズムが存在しない場合はFalse
@@ -250,8 +252,8 @@ class MechanismService:
         if not mechanism:
             return False
         
-        # 投稿者本人かどうかを確認
-        if mechanism.user_id != current_user_id:
+        # 投稿者本人またはadminかどうかを確認
+        if mechanism.user_id != current_user_id and not is_admin:
             return False
         
         # メカニズムを削除（関連データも自動削除される）

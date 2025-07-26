@@ -161,7 +161,7 @@ describe('MechanismDetailPage', () => {
     // 認証済み状態をモック
     (useAuth as jest.Mock).mockReturnValue({
       isAuthenticated: true,
-      user: { id: 1, email: 'test@example.com', created_at: '2025-04-01T00:00:00Z' },
+      user: { id: 1, email: 'test@example.com', is_admin: false, created_at: '2025-04-01T00:00:00Z' },
       token: 'test-token',
       loading: false,
       error: null,
@@ -195,7 +195,7 @@ describe('MechanismDetailPage', () => {
     // 認証済み状態をモック
     (useAuth as jest.Mock).mockReturnValue({
       isAuthenticated: true,
-      user: { id: 1, email: 'test@example.com', created_at: '2025-04-01T00:00:00Z' },
+      user: { id: 1, email: 'test@example.com', is_admin: false, created_at: '2025-04-01T00:00:00Z' },
       token: 'test-token',
       loading: false,
       error: null,
@@ -330,7 +330,7 @@ describe('MechanismDetailPage', () => {
   test('投稿者本人の場合は編集ボタンが表示されること', async () => {
     // 投稿者本人でログインした状態をモック
     (useAuth as jest.Mock).mockReturnValue({
-      user: { id: 1, email: 'test@example.com' }, // mockMechanismDetailの投稿者と同じID
+      user: { id: 1, email: 'test@example.com', is_admin: false }, // mockMechanismDetailの投稿者と同じID
       isAuthenticated: true,
       loading: false,
       error: null,
@@ -353,7 +353,7 @@ describe('MechanismDetailPage', () => {
   test('投稿者以外の場合は編集ボタンが表示されないこと', async () => {
     // 別のユーザーでログインした状態をモック
     (useAuth as jest.Mock).mockReturnValue({
-      user: { id: 2, email: 'other@example.com' }, // 異なるユーザーID
+      user: { id: 2, email: 'other@example.com', is_admin: false }, // 異なるユーザーID
       isAuthenticated: true,
       loading: false,
       error: null,
@@ -402,7 +402,7 @@ describe('MechanismDetailPage', () => {
   test('投稿者本人の場合は削除ボタンが表示されること', async () => {
     // 投稿者本人でログインした状態をモック
     (useAuth as jest.Mock).mockReturnValue({
-      user: { id: 1, email: 'test@example.com' }, // mockMechanismDetailの投稿者と同じID
+      user: { id: 1, email: 'test@example.com', is_admin: false }, // mockMechanismDetailの投稿者と同じID
       isAuthenticated: true,
       loading: false,
       error: null,
@@ -425,7 +425,7 @@ describe('MechanismDetailPage', () => {
   test('投稿者以外の場合は削除ボタンが表示されないこと', async () => {
     // 別のユーザーでログインした状態をモック
     (useAuth as jest.Mock).mockReturnValue({
-      user: { id: 2, email: 'other@example.com' }, // 異なるユーザーID
+      user: { id: 2, email: 'other@example.com', is_admin: false }, // 異なるユーザーID、非admin
       isAuthenticated: true,
       loading: false,
       error: null,
@@ -445,10 +445,36 @@ describe('MechanismDetailPage', () => {
     expect(screen.queryByText('削除')).not.toBeInTheDocument();
   });
 
+  test('admin権限の場合は削除ボタンが表示されること', async () => {
+    // admin権限のユーザーでログインした状態をモック
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 3, email: 'admin@example.com', is_admin: true }, // adminユーザー
+      isAuthenticated: true,
+      loading: false,
+      error: null,
+      login: jest.fn(),
+      register: jest.fn(),
+      logout: jest.fn()
+    });
+    
+    renderWithRouter();
+    
+    // データが読み込まれるのを待つ
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+    
+    // 削除ボタンが表示されることを確認（投稿者でなくても）
+    expect(screen.getByText('削除')).toBeInTheDocument();
+    
+    // 編集ボタンは投稿者でないため表示されないことを確認
+    expect(screen.queryByText('編集')).not.toBeInTheDocument();
+  });
+
   test('削除確認ダイアログの表示と操作', async () => {
     // 投稿者本人でログインした状態をモック
     (useAuth as jest.Mock).mockReturnValue({
-      user: { id: 1, email: 'test@example.com' },
+      user: { id: 1, email: 'test@example.com', is_admin: false },
       isAuthenticated: true,
       loading: false,
       error: null,

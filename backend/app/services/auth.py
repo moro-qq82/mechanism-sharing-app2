@@ -117,6 +117,7 @@ def login_user(db: Session, email: str, password: str) -> Token:
     user_response = UserResponse(
         id=user.id,
         email=user.email,
+        is_admin=user.is_admin,
         created_at=user.created_at
     )
     

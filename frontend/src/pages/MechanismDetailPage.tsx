@@ -144,6 +144,12 @@ const MechanismDetailPage: React.FC = () => {
 
   // 現在のユーザーが投稿者かどうかをチェック
   const isOwner = mechanism && user && mechanism.user.id === user.id;
+  
+  // 現在のユーザーがadmin権限を持っているかチェック
+  const isAdmin = user && user.is_admin;
+  
+  // 削除権限があるかどうか（投稿者またはadmin）
+  const canDelete = isOwner || isAdmin;
 
   // いいね処理
   const handleLike = async () => {
@@ -248,20 +254,20 @@ const MechanismDetailPage: React.FC = () => {
                     信頼性: {getReliabilityLabel(mechanism.reliability)}
                   </span>
                   {isOwner && (
-                    <>
-                      <button 
-                        onClick={handleEdit}
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        編集
-                      </button>
-                      <button 
-                        onClick={handleDelete}
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                      >
-                        削除
-                      </button>
-                    </>
+                    <button 
+                      onClick={handleEdit}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      編集
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button 
+                      onClick={handleDelete}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                      削除
+                    </button>
                   )}
                   <button 
                     onClick={handleLike}

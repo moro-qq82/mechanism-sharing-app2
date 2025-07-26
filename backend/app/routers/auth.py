@@ -37,6 +37,7 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     user_response = UserResponse(
         id=db_user.id,
         email=db_user.email,
+        is_admin=db_user.is_admin,
         created_at=db_user.created_at
     )
     
@@ -74,6 +75,6 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return {
         "id": current_user.id,
         "email": current_user.email,
-        "created_at": current_user.created_at,
-        "updated_at": current_user.updated_at
+        "is_admin": current_user.is_admin,
+        "created_at": current_user.created_at
     }

@@ -360,11 +360,12 @@ def delete_mechanism(
     Raises:
         HTTPException: メカニズムが見つからない場合、または削除権限がない場合
     """
-    # メカニズムを削除
+    # メカニズムを削除（投稿者本人またはadmin権限）
     success = MechanismService.delete_mechanism(
         db=db,
         mechanism_id=mechanism_id,
-        current_user_id=current_user.id
+        current_user_id=current_user.id,
+        is_admin=current_user.is_admin
     )
     
     if not success:

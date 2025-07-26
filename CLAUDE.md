@@ -28,6 +28,9 @@ stop_app.bat
 # Install dependencies
 uv pip install -r backend/requirements.txt
 
+# python environment
+source .venv/bin/activate
+
 # Start development server
 uvicorn backend.app.main:app --reload
 

@@ -393,7 +393,8 @@ def test_delete_mechanism_success(db_session: Session, test_mechanism: Mechanism
     success = MechanismService.delete_mechanism(
         db=db_session,
         mechanism_id=mechanism_id,
-        current_user_id=user_id
+        current_user_id=user_id,
+        is_admin=False
     )
     
     # 削除が成功することを確認
@@ -419,7 +420,8 @@ def test_delete_mechanism_not_owner(db_session: Session, test_mechanism: Mechani
     success = MechanismService.delete_mechanism(
         db=db_session,
         mechanism_id=test_mechanism.id,
-        current_user_id=another_user.id
+        current_user_id=another_user.id,
+        is_admin=False
     )
     
     # 削除は失敗すべき
@@ -434,8 +436,67 @@ def test_delete_mechanism_not_found(db_session: Session, test_user):
     success = MechanismService.delete_mechanism(
         db=db_session,
         mechanism_id=999,  # 存在しないID
-        current_user_id=test_user.id
+        current_user_id=test_user.id,
+        is_admin=False
     )
     
     # 削除は失敗すべき
     assert success is False
+
+def test_delete_mechanism_admin_success(db_session: Session, test_mechanism: Mechanism):
+    """admin権限でのメカニズム削除成功テスト"""
+    # adminユーザーを作成
+    from backend.app.models.user import User
+    admin_user = User(
+        email=f"admin_{time.time()}@example.com",
+        password_hash="hashedpassword",
+        is_admin=True
+    )
+    db_session.add(admin_user)
+    db_session.commit()
+    db_session.refresh(admin_user)
+    
+    mechanism_id = test_mechanism.id
+    
+    # admin権限でメカニズムを削除（投稿者以外）
+    success = MechanismService.delete_mechanism(
+        db=db_session,
+        mechanism_id=mechanism_id,
+        current_user_id=admin_user.id,
+        is_admin=True
+    )
+    
+    # 削除が成功することを確認
+    assert success is True
+    
+    # データベースから削除されていることを確認
+    deleted_mechanism = db_session.query(Mechanism).filter(Mechanism.id == mechanism_id).first()
+    assert deleted_mechanism is None
+
+def test_delete_mechanism_non_admin_failure(db_session: Session, test_mechanism: Mechanism):
+    """非admin権限での他人のメカニズム削除失敗テスト"""
+    # 一般ユーザーを作成
+    from backend.app.models.user import User
+    regular_user = User(
+        email=f"regular_{time.time()}@example.com",
+        password_hash="hashedpassword",
+        is_admin=False
+    )
+    db_session.add(regular_user)
+    db_session.commit()
+    db_session.refresh(regular_user)
+    
+    # 一般ユーザーが他人のメカニズムを削除しようとする
+    success = MechanismService.delete_mechanism(
+        db=db_session,
+        mechanism_id=test_mechanism.id,
+        current_user_id=regular_user.id,
+        is_admin=False
+    )
+    
+    # 削除は失敗すべき
+    assert success is False
+    
+    # メカニズムがまだ存在することを確認
+    mechanism = db_session.query(Mechanism).filter(Mechanism.id == test_mechanism.id).first()
+    assert mechanism is not None
