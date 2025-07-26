@@ -1,5 +1,5 @@
 import api from './api';
-import { PaginatedMechanismResponse, MechanismDetail, MechanismFormData, MechanismViewCount, MechanismViewsResponse, MechanismDownloadCount, MechanismDownloadsResponse } from '../types/mechanism';
+import { PaginatedMechanismResponse, MechanismDetail, MechanismFormData, MechanismUpdateData, MechanismViewCount, MechanismViewsResponse, MechanismDownloadCount, MechanismDownloadsResponse } from '../types/mechanism';
 
 /**
  * メカニズムサービス
@@ -71,6 +71,22 @@ export const MechanismService = {
       return response.data;
     } catch (error) {
       console.error('メカニズムの作成に失敗しました', error);
+      throw error;
+    }
+  },
+
+  /**
+   * メカニズムを更新する
+   * @param id メカニズムID
+   * @param updateData 更新データ
+   * @returns 更新されたメカニズム情報
+   */
+  async updateMechanism(id: number, updateData: MechanismUpdateData): Promise<MechanismDetail> {
+    try {
+      const response = await api.put(`/api/mechanisms/${id}`, updateData);
+      return response.data;
+    } catch (error) {
+      console.error(`メカニズム(ID: ${id})の更新に失敗しました`, error);
       throw error;
     }
   },

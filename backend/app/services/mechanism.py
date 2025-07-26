@@ -9,7 +9,7 @@ import uuid
 from backend.app.models.mechanism import Mechanism
 from backend.app.models.category import Category
 from backend.app.models.like import Like
-from backend.app.schemas.mechanism import MechanismCreate
+from backend.app.schemas.mechanism import MechanismCreate, MechanismUpdate
 
 class MechanismService:
     """
@@ -181,3 +181,49 @@ class MechanismService:
         db.refresh(db_mechanism)
         
         return db_mechanism
+
+    @staticmethod
+    def update_mechanism(
+        db: Session,
+        mechanism_id: int,
+        mechanism_update: MechanismUpdate,
+        current_user_id: int
+    ) -> Optional[Mechanism]:
+        """
+        メカニズムを更新する
+
+        Args:
+            db: データベースセッション
+            mechanism_id: 更新するメカニズムのID
+            mechanism_update: 更新データ
+            current_user_id: 現在のユーザーID
+
+        Returns:
+            更新されたメカニズムオブジェクト、権限がない場合やメカニズムが存在しない場合はNone
+        """
+        # メカニズムを取得
+        mechanism = db.query(Mechanism).filter(Mechanism.id == mechanism_id).first()
+        if not mechanism:
+            return None
+        
+        # 投稿者本人かどうかを確認
+        if mechanism.user_id != current_user_id:
+            return None
+        
+        # 更新可能なフィールドのみ更新
+        update_data = mechanism_update.model_dump(exclude_unset=True)
+        
+        # カテゴリーが指定されている場合は個別に処理
+        if 'categories' in update_data:
+            categories = MechanismService.get_or_create_categories(db, update_data['categories'])
+            mechanism.categories = categories
+            del update_data['categories']
+        
+        # その他のフィールドを更新
+        for field, value in update_data.items():
+            setattr(mechanism, field, value)
+        
+        db.commit()
+        db.refresh(mechanism)
+        
+        return mechanism

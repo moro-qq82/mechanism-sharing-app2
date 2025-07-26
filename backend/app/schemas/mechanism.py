@@ -19,6 +19,13 @@ class MechanismCreate(BaseModel):
     reliability: int
     categories: List[str]
 
+# メカニズム編集用スキーマ
+class MechanismUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    reliability: Optional[int] = None
+    categories: Optional[List[str]] = None
+
 # メカニズム情報表示用スキーマ（一覧用）
 class MechanismListResponse(BaseModel):
     id: int

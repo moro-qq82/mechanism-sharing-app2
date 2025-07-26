@@ -8,7 +8,7 @@ from pathlib import Path
 from backend.app.database import get_db
 from backend.app.middlewares.auth import get_current_user, get_current_user_optional
 from backend.app.models.user import User
-from backend.app.schemas.mechanism import MechanismCreate, MechanismListResponse, MechanismDetailResponse, PaginatedMechanismResponse
+from backend.app.schemas.mechanism import MechanismCreate, MechanismUpdate, MechanismListResponse, MechanismDetailResponse, PaginatedMechanismResponse
 from backend.app.services.mechanism import MechanismService
 from backend.app.services.mechanism_view import MechanismViewService
 from backend.app.services.mechanism_download import MechanismDownloadService
@@ -262,3 +262,80 @@ async def download_mechanism_file(
         filename=filename,
         media_type='application/octet-stream'
     )
+
+@router.put("/{mechanism_id}", response_model=MechanismDetailResponse)
+def update_mechanism(
+    mechanism_id: int,
+    mechanism_update: MechanismUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    メカニズムを編集するエンドポイント
+    
+    Args:
+        mechanism_id: 編集するメカニズムのID
+        mechanism_update: 更新データ
+        db: データベースセッション
+        current_user: 現在のユーザー
+        
+    Returns:
+        更新されたメカニズム情報
+        
+    Raises:
+        HTTPException: メカニズムが見つからない場合、または編集権限がない場合
+    """
+    # 信頼性レベルのバリデーション（指定されている場合のみ）
+    if mechanism_update.reliability is not None:
+        if mechanism_update.reliability < 1 or mechanism_update.reliability > 5:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="信頼性レベルは1から5の間で指定してください"
+            )
+    
+    # メカニズムを更新
+    updated_mechanism = MechanismService.update_mechanism(
+        db=db,
+        mechanism_id=mechanism_id,
+        mechanism_update=mechanism_update,
+        current_user_id=current_user.id
+    )
+    
+    if not updated_mechanism:
+        # メカニズムが存在しないか、編集権限がない場合
+        mechanism = MechanismService.get_mechanism_by_id(db, mechanism_id)
+        if not mechanism:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="メカニズムが見つかりません"
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="このメカニズムを編集する権限がありません"
+            )
+    
+    # カテゴリー名のリストを取得
+    categories = [category.name for category in updated_mechanism.categories]
+    
+    # いいね数を取得
+    likes_count = MechanismService.get_likes_count(db, updated_mechanism.id)
+    
+    # 閲覧回数を取得
+    views_count = MechanismViewService.get_mechanism_views_count(db, updated_mechanism.id)
+    
+    # 更新されたメカニズム情報を返す
+    return {
+        "id": updated_mechanism.id,
+        "title": updated_mechanism.title,
+        "description": updated_mechanism.description,
+        "reliability": updated_mechanism.reliability,
+        "file_path": updated_mechanism.file_path,
+        "thumbnail_path": updated_mechanism.thumbnail_path,
+        "user": updated_mechanism.user,
+        "categories": categories,
+        "likes_count": likes_count,
+        "views_count": views_count,
+        "created_at": updated_mechanism.created_at,
+        "updated_at": updated_mechanism.updated_at
+    }

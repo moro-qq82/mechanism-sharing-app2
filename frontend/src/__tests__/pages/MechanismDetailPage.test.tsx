@@ -326,4 +326,73 @@ describe('MechanismDetailPage', () => {
     // スパイをリストア
     consoleSpy.mockRestore();
   });
+
+  test('投稿者本人の場合は編集ボタンが表示されること', async () => {
+    // 投稿者本人でログインした状態をモック
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 1, email: 'test@example.com' }, // mockMechanismDetailの投稿者と同じID
+      isAuthenticated: true,
+      loading: false,
+      error: null,
+      login: jest.fn(),
+      register: jest.fn(),
+      logout: jest.fn()
+    });
+    
+    renderWithRouter();
+    
+    // データが読み込まれるのを待つ
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+    
+    // 編集ボタンが表示されることを確認
+    expect(screen.getByText('編集')).toBeInTheDocument();
+  });
+
+  test('投稿者以外の場合は編集ボタンが表示されないこと', async () => {
+    // 別のユーザーでログインした状態をモック
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 2, email: 'other@example.com' }, // 異なるユーザーID
+      isAuthenticated: true,
+      loading: false,
+      error: null,
+      login: jest.fn(),
+      register: jest.fn(),
+      logout: jest.fn()
+    });
+    
+    renderWithRouter();
+    
+    // データが読み込まれるのを待つ
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+    
+    // 編集ボタンが表示されないことを確認
+    expect(screen.queryByText('編集')).not.toBeInTheDocument();
+  });
+
+  test('未認証の場合は編集ボタンが表示されないこと', async () => {
+    // 未認証状態をモック
+    (useAuth as jest.Mock).mockReturnValue({
+      user: null,
+      isAuthenticated: false,
+      loading: false,
+      error: null,
+      login: jest.fn(),
+      register: jest.fn(),
+      logout: jest.fn()
+    });
+    
+    renderWithRouter();
+    
+    // データが読み込まれるのを待つ
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+    
+    // 編集ボタンが表示されないことを確認
+    expect(screen.queryByText('編集')).not.toBeInTheDocument();
+  });
 });

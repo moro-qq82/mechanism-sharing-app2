@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getReliabilityLabel, getReliabilityColorClass } from '../utils/reliabilityUtils';
 import MechanismService from '../services/mechanismService';
 import { MechanismDetail } from '../types/mechanism';
@@ -11,6 +11,7 @@ const MechanismDetailPage: React.FC = () => {
   // URLからメカニズムIDを取得
   const { id } = useParams<{ id: string }>();
   const mechanismId = parseInt(id || '0', 10);
+  const navigate = useNavigate();
   
   // 認証コンテキスト
     const { isAuthenticated, user } = useAuth();
@@ -107,6 +108,14 @@ const MechanismDetailPage: React.FC = () => {
       alert('ファイルのダウンロードに失敗しました。');
     }
   };
+
+  // 編集ボタンのクリックハンドラ
+  const handleEdit = () => {
+    navigate(`/mechanisms/${mechanismId}/edit`);
+  };
+
+  // 現在のユーザーが投稿者かどうかをチェック
+  const isOwner = mechanism && user && mechanism.user.id === user.id;
 
   // いいね処理
   const handleLike = async () => {
@@ -206,10 +215,18 @@ const MechanismDetailPage: React.FC = () => {
                     投稿者: {mechanism.user.email}
                   </p>
                 </div>
-                <div className="flex items-center">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getReliabilityColorClass(mechanism.reliability)} mr-2`}>
+                <div className="flex items-center space-x-2">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getReliabilityColorClass(mechanism.reliability)}`}>
                     信頼性: {getReliabilityLabel(mechanism.reliability)}
                   </span>
+                  {isOwner && (
+                    <button 
+                      onClick={handleEdit}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      編集
+                    </button>
+                  )}
                   <button 
                     onClick={handleLike}
                     className={`inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white ${isLiked ? 'bg-pink-700' : 'bg-pink-600 hover:bg-pink-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500`}

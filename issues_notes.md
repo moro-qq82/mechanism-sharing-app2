@@ -52,6 +52,27 @@
 ### In process
 
 ### completed
+34. 自分が投稿したメカニズムは編集できるようにする
+   - 完了日時: 2025-07-26
+   - 該当ファイル:
+     - backend/app/schemas/mechanism.py - MechanismUpdate スキーマ追加
+     - backend/app/services/mechanism.py - update_mechanism メソッド追加（投稿者本人のみ編集可能）
+     - backend/app/routers/mechanism.py - PUT /api/mechanisms/{id} エンドポイント追加
+     - backend/tests/test_mechanism.py - 編集機能のテスト追加（5つのテストケース）
+     - frontend/src/types/mechanism.ts - MechanismUpdateData 型追加
+     - frontend/src/services/mechanismService.ts - updateMechanism メソッド追加
+     - frontend/src/pages/MechanismEditPage.tsx - メカニズム編集画面作成
+     - frontend/src/pages/MechanismDetailPage.tsx - 投稿者のみ表示される編集ボタン追加
+     - frontend/src/App.tsx - /mechanisms/:id/edit ルート追加
+     - frontend/src/__tests__/pages/MechanismEditPage.test.tsx - 編集画面テスト作成
+     - frontend/src/__tests__/pages/MechanismDetailPage.test.tsx - 編集ボタンテスト追加
+   - 機能: 
+     - メカニズムの基本情報（タイトル、説明、信頼性レベル、カテゴリー）の編集
+     - 投稿者本人のみ編集可能な権限制御
+     - 詳細画面に投稿者のみ表示される編集ボタン
+     - 適切なエラーハンドリングとバリデーション
+   - 制限事項: ファイルの編集は不可（新規投稿として案内）
+
 33. 「ファイルを表示」ボタンと「ダウンロード」ボタンが挙動が同じでブラウザで表示するのみになっているので、「ダウンロード」ボタンは押したらダウンロードが始まるようにしたい
    - 完了日時: 2025-07-13
    - 該当ファイル:

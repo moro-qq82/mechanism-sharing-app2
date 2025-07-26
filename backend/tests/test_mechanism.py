@@ -7,7 +7,7 @@ import time # For unique names
 
 from backend.app.models.mechanism import Mechanism
 from backend.app.models.category import Category
-from backend.app.schemas.mechanism import MechanismCreate
+from backend.app.schemas.mechanism import MechanismCreate, MechanismUpdate
 from backend.app.services.mechanism import MechanismService
 
 def test_get_mechanisms(db_session: Session, test_mechanism: Mechanism):
@@ -274,3 +274,112 @@ def test_create_mechanism_no_mock(db_session: Session, test_user):
     cat2_db = db_session.query(Category).filter(Category.name == category_name2).first()
     assert cat1_db is not None
     assert cat2_db is not None
+
+def test_update_mechanism_success(db_session: Session, test_mechanism: Mechanism, test_user):
+    """メカニズム編集成功のテスト（投稿者本人）"""
+    # 更新データ
+    update_data = MechanismUpdate(
+        title="更新されたタイトル",
+        description="更新された説明",
+        reliability=5,
+        categories=["更新カテゴリー1", "更新カテゴリー2"]
+    )
+    
+    # メカニズムを更新（投稿者本人）
+    updated_mechanism = MechanismService.update_mechanism(
+        db=db_session,
+        mechanism_id=test_mechanism.id,
+        mechanism_update=update_data,
+        current_user_id=test_mechanism.user_id
+    )
+    
+    # アサーション
+    assert updated_mechanism is not None
+    assert updated_mechanism.id == test_mechanism.id
+    assert updated_mechanism.title == "更新されたタイトル"
+    assert updated_mechanism.description == "更新された説明"
+    assert updated_mechanism.reliability == 5
+    assert len(updated_mechanism.categories) == 2
+    
+    # カテゴリー名を確認
+    category_names = sorted([cat.name for cat in updated_mechanism.categories])
+    assert category_names == ["更新カテゴリー1", "更新カテゴリー2"]
+
+def test_update_mechanism_partial_update(db_session: Session, test_mechanism: Mechanism):
+    """メカニズム部分編集のテスト"""
+    original_title = test_mechanism.title
+    original_description = test_mechanism.description
+    
+    # 一部のフィールドのみ更新
+    update_data = MechanismUpdate(reliability=4)
+    
+    updated_mechanism = MechanismService.update_mechanism(
+        db=db_session,
+        mechanism_id=test_mechanism.id,
+        mechanism_update=update_data,
+        current_user_id=test_mechanism.user_id
+    )
+    
+    # アサーション
+    assert updated_mechanism is not None
+    assert updated_mechanism.title == original_title  # 変更されていない
+    assert updated_mechanism.description == original_description  # 変更されていない
+    assert updated_mechanism.reliability == 4  # 変更された
+
+def test_update_mechanism_not_owner(db_session: Session, test_mechanism: Mechanism, test_user):
+    """メカニズム編集失敗のテスト（投稿者以外）"""
+    # 別のユーザーを作成
+    from backend.app.models.user import User
+    another_user = User(
+        email=f"another_{time.time()}@example.com",
+        password_hash="hashedpassword"
+    )
+    db_session.add(another_user)
+    db_session.commit()
+    db_session.refresh(another_user)
+    
+    update_data = MechanismUpdate(title="不正な更新")
+    
+    # 投稿者以外のユーザーで更新を試行
+    updated_mechanism = MechanismService.update_mechanism(
+        db=db_session,
+        mechanism_id=test_mechanism.id,
+        mechanism_update=update_data,
+        current_user_id=another_user.id
+    )
+    
+    # 更新は失敗すべき
+    assert updated_mechanism is None
+
+def test_update_mechanism_not_found(db_session: Session, test_user):
+    """存在しないメカニズムの編集テスト"""
+    update_data = MechanismUpdate(title="存在しないメカニズム")
+    
+    updated_mechanism = MechanismService.update_mechanism(
+        db=db_session,
+        mechanism_id=999,  # 存在しないID
+        mechanism_update=update_data,
+        current_user_id=test_user.id
+    )
+    
+    # 更新は失敗すべき
+    assert updated_mechanism is None
+
+def test_update_mechanism_categories_only(db_session: Session, test_mechanism: Mechanism):
+    """カテゴリーのみ更新のテスト"""
+    original_title = test_mechanism.title
+    
+    update_data = MechanismUpdate(categories=["新カテゴリー"])
+    
+    updated_mechanism = MechanismService.update_mechanism(
+        db=db_session,
+        mechanism_id=test_mechanism.id,
+        mechanism_update=update_data,
+        current_user_id=test_mechanism.user_id
+    )
+    
+    # アサーション
+    assert updated_mechanism is not None
+    assert updated_mechanism.title == original_title  # 変更されていない
+    assert len(updated_mechanism.categories) == 1
+    assert updated_mechanism.categories[0].name == "新カテゴリー"

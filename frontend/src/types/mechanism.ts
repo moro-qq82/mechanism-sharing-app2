@@ -41,6 +41,14 @@ export interface MechanismFormData {
   thumbnail: File | null;
 }
 
+// メカニズム編集フォームの型
+export interface MechanismUpdateData {
+  title?: string;
+  description?: string;
+  reliability?: number;
+  categories?: string[];
+}
+
 // メカニズム閲覧回数の型
 export interface MechanismViewCount {
   mechanism_id: number;

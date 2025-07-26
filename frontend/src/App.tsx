@@ -8,6 +8,7 @@ import RegisterPage from './pages/RegisterPage';
 import MechanismListPage from './pages/MechanismListPage';
 import MechanismDetailPage from './pages/MechanismDetailPage';
 import MechanismNewPage from './pages/MechanismNewPage';
+import MechanismEditPage from './pages/MechanismEditPage';
 
 // 認証関連のコンポーネントのインポート
 import { AuthProvider } from './contexts/AuthContext';
@@ -46,6 +47,14 @@ function App() {
               element={
                 <Layout>
                   <MechanismNewPage />
+                </Layout>
+              } 
+            />
+            <Route 
+              path="/mechanisms/:id/edit" 
+              element={
+                <Layout>
+                  <MechanismEditPage />
                 </Layout>
               } 
             />
